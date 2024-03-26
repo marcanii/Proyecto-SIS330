@@ -1,2 +1,4 @@
 # no necesitamos incluir los ejecutables de python ni los archivos .pyc
 __pycache__/
+
+*.pt
