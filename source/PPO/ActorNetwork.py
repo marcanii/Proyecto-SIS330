@@ -1,44 +1,27 @@
-import os
-import torch
 import torch.nn as nn
-import torch.optim as optim
-from torch.distributions.categorical import Categorical
-
+import torchvision.models as models
 
 class ActorNetwork(nn.Module):
-    def __init__(self, n_actions, input_dims, alpha,
-            fc1_dims=256, fc2_dims=256, chkpt_dir='tmp/ppo'):
+    def __init__(self, n_outputs=5, pretrained=False, freeze=False):
         super(ActorNetwork, self).__init__()
-
-        self.checkpoint_file = os.path.join(chkpt_dir, 'actor_torch_ppo')
-        self.actor = nn.Sequential(
-                nn.Linear(input_dims, fc1_dims),
-                nn.ReLU(),
-                nn.Linear(fc1_dims, fc2_dims),
-                nn.ReLU(),
-                nn.Linear(fc2_dims, n_actions),
-                nn.Softmax(dim=-1)
-        )
-
-        self.optimizer = optim.Adam(self.parameters(), lr=alpha)
-        #self.device = torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')
-        if torch.cuda.is_available():
-            print('Using CUDA in ActorNetwork')
-            self.device = torch.device('cuda:0')
-        else:
-            print('Using CPU in ActorNetwork')
-            self.device = torch.device('cpu')
-
-        self.to(self.device)
-
-    def forward(self, state):
-        dist = self.actor(state)
-        dist = Categorical(dist)
         
-        return dist
+        resnet50 = models.resnet50(weights=None if not pretrained else 'imagenet')
 
-    def save_checkpoint(self):
-        torch.save(self.state_dict(), self.checkpoint_file)
+        self.resnet50 = nn.Sequential(*list(resnet50.children())[:-1])
+        if freeze:
+            for param in self.resnet50.parameters():
+                param.requires_grad=False
+        # añadimos una nueva capa lineal para llevar a cabo la clasificación
+        self.fc = nn.Linear(2048, n_outputs)
+        self.softmax = nn.Softmax(dim=-1)
+        
+    def forward(self, x):
+        x = self.resnet50(x)
+        x = x.view(x.shape[0], -1)
+        x = self.fc(x)
+        x = self.softmax(x)
+        return x
 
-    def load_checkpoint(self):
-        self.load_state_dict(torch.load(self.checkpoint_file))
+    def unfreeze(self):
+        for param in self.resnet50.parameters():
+            param.requires_grad=True

@@ -1,33 +1,21 @@
-import os
-import torch
 import torch.nn as nn
-import torch.optim as optim
 
 class CriticNetwork(nn.Module):
-    def __init__(self, input_dims, alpha, fc1_dims=256, fc2_dims=256,
-            chkpt_dir='tmp/ppo'):
+    def __init__(self, input_dims, alpha, fc1_dims=256, fc2_dims=256):
         super(CriticNetwork, self).__init__()
 
-        self.checkpoint_file = os.path.join(chkpt_dir, 'critic_torch_ppo')
-        self.critic = nn.Sequential(
-                nn.Linear(*input_dims, fc1_dims),
-                nn.ReLU(),
-                nn.Linear(fc1_dims, fc2_dims),
-                nn.ReLU(),
-                nn.Linear(fc2_dims, 1)
-        )
-
-        self.optimizer = optim.Adam(self.parameters(), lr=alpha)
-        self.device = torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')
-        self.to(self.device)
+        
+        self.lineal1 = nn.Linear(*input_dims, fc1_dims),
+        self.relu1 = nn.ReLU(),
+        self.lineal2 = nn.Linear(fc1_dims, fc2_dims),
+        self.relu2 = nn.ReLU(),
+        self.lineal3 = nn.Linear(fc2_dims, 1)
+        
 
     def forward(self, state):
-        value = self.critic(state)
-
+        value = self.lineal1(state)
+        value = self.relu1(value)
+        value = self.lineal2(value)
+        value = self.relu2(value)
+        value = self.lineal3(value)
         return value
-
-    def save_checkpoint(self):
-        torch.save(self.state_dict(), self.checkpoint_file)
-
-    def load_checkpoint(self):
-        self.load_state_dict(torch.load(self.checkpoint_file))
