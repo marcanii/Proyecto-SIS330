@@ -1,14 +1,8 @@
-from  ActorNetwork import ActorNetwork, ModelCustom
+from Agent import Agent
 import torch
-import torchvision.models as models
 
 if __name__ == '__main__':
-    # actor = ActorNetwork()
-    # outputs = actor(torch.randn(4, 3, 59, 105))
-    # print(outputs.shape)
-    # print(outputs)
-    #efficientnet = models.efficientnet_v2_s(pretrained=True)
-    efficientnet = ModelCustom()
-    outputs = efficientnet(torch.randn(4, 3, 59, 105))
-    print(outputs.shape)
-    print(outputs)
+    agente = Agent(5, 3*59*105)
+    observation = torch.randn(4, 3*59*105)
+    action, probs, value = agente.choose_action(observation)
+    print(action, probs, value)

@@ -27,24 +27,26 @@ class ActorNetwork(nn.Module):
             param.requires_grad=True
 
 class ModelCustom(nn.Module):
-    def __init__(self, n_outputs=5, pretrained=False, freeze=False):
+    def __init__(self, n_outputs=5, pretrained=True, freeze=False):
         super(ModelCustom, self).__init__()
         
-        efficientnet = models.efficientnet_v2_s(weights=None if not pretrained else 'imagenet')
+        efficientnet = models.efficientnet_b0(weights=None if not pretrained else 'EfficientNet_B0_Weights.IMAGENET1K_V1')
 
         self.efficientnet = nn.Sequential(*list(efficientnet.children())[:-1])
         if freeze:
             for param in self.efficientnet.parameters():
                 param.requires_grad=False
         # añadimos una nueva capa lineal para llevar a cabo la clasificación
-        self.fc = nn.Linear(1280, n_outputs)
-        self.softmax = nn.Softmax(dim=-1)
+        self.classifier = nn.Sequential(
+            nn.Dropout(0.2, inplace=True),
+            nn.Linear(1280, n_outputs),
+            nn.Softmax(dim=-1)
+        )
         
     def forward(self, x):
         x = self.efficientnet(x)
         x = x.view(x.shape[0], -1)
-        x = self.fc(x)
-        x = self.softmax(x)
+        x = self.classifier(x)
         return x
 
     def unfreeze(self):
