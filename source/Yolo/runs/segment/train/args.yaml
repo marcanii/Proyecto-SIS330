@@ -1,11 +1,11 @@
 task: segment
 mode: train
-model: yolov8x-seg.pt
+model: F:\Proyecto-SIS330\source\Yolo\best_first_train.pt
 data: customdata.yaml
-epochs: 100
+epochs: 50
 time: null
 patience: 100
-batch: 16
+batch: 4
 imgsz:
 - 840
 - 472

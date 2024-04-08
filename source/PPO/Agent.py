@@ -20,10 +20,10 @@ class Agent:
         self.memory.store_memory(state, action, probs, vals, reward, done)
     
     def choose_action(self, observation):
-        state = torch.tensor([observation], dtype=torch.float).to(self.actor.device)
+        state = observation # shape(4, 3*59*105)
         
-        dist = self.actor(state)
-        value = self.critic(state)
+        dist = self.actor(state) # shapeInput(4, 3*59*105), shapeOuput(4, 5)
+        value = self.critic(state) # shapeInput(4, 3*59*105), shapeOuput(4, 1)
         action = dist.sample()
 
         probs = torch.squeeze(dist.log_prob(action)).item()
