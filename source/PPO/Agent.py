@@ -5,27 +5,37 @@ import torch
 import numpy as np
 
 class Agent:
-    def __init__(self, n_actions, input_dims, gamma=0.99, gae_lambda=0.95,
-            policy_clip=0.2, batch_size=64, n_epochs=10):
+    def __init__(self, n_actions, input_dims, gamma=0.99, alpha=0.0003, gae_lambda=0.95,
+                policy_clip=0.2, batch_size=64, n_epochs=10):
         self.gamma = gamma
         self.policy_clip = policy_clip
         self.n_epochs = n_epochs
         self.gae_lambda = gae_lambda
 
-        self.actor = ActorNetwork(n_outputs=n_actions, pretrained=False, freeze=False)
-        self.critic = CriticNetwork(input_dims)
+        self.actor = ActorNetwork(n_actions, alpha)
+        self.critic = CriticNetwork(input_dims, alpha)
         self.memory = PPOMemory(batch_size)
     
     def remember(self, state, action, probs, vals, reward, done):
         self.memory.store_memory(state, action, probs, vals, reward, done)
+
+    def save_models(self):
+        print('... saving models ...')
+        self.actor.save_checkpoint()
+        self.critic.save_checkpoint()
+
+    def load_models(self):
+        print('... loading models ...')
+        self.actor.load_checkpoint()
+        self.critic.load_checkpoint()
     
     def choose_action(self, observation):
-        state = observation # shape(4, 3*59*105)
-        
-        dist = self.actor(state) # shapeInput(4, 3*59*105), shapeOuput(4, 5)
-        value = self.critic(state) # shapeInput(4, 3*59*105), shapeOuput(4, 1)
+        state = observation
+        state_critic = state.view(1, -1)
+        dist = self.actor(state)
+        value = self.critic(state_critic)
         action = dist.sample()
-
+        #print("StateShape: ", state.shape, "DistShape: ", dist.probs.shape, "ActionShape: ", action.shape)
         probs = torch.squeeze(dist.log_prob(action)).item()
         action = torch.squeeze(action).item()
         value = torch.squeeze(value).item()
@@ -74,4 +84,5 @@ class Agent:
                 total_loss.backward()
                 self.actor.optimizer.step()
                 self.critic.optimizer.step()
+                
         self.memory.clear_memory()
