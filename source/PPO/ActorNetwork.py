@@ -21,10 +21,10 @@ class ActorNetwork(nn.Module):
         self.checkpoint_file = os.path.join(chkpt_dir, 'critic_ppo')
         self.optimizer = optim.Adam(self.parameters(), lr=alpha)
         if torch.cuda.is_available():
-            print("CriticNetwork esta usando CUDA...")
+            print("ActorNetwork esta usando CUDA...")
             self.device = "cuda:0"
         else:
-            print("CriticNetwork esta usando CPU...")
+            print("ActorNetwork esta usando CPU...")
             self.device = "cpu"
         self.to(self.device)
         

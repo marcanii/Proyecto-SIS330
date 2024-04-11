@@ -30,7 +30,7 @@ class Agent:
         self.critic.load_checkpoint()
     
     def choose_action(self, observation):
-        state = observation
+        state = observation.to(self.actor.device)
         state_critic = state.view(1, -1)
         dist = self.actor(state)
         value = self.critic(state_critic)
