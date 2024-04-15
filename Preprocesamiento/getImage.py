@@ -35,7 +35,7 @@ def extract_images(video_path, output_folder, frame_rate=1):
     cv2.destroyAllWindows()
 
 if __name__ == "__main__":
-    video_path = "F:\Proyecto-SIS330\Preprocesamiento\Videos\Video38.mp4"
+    video_path = "F:\Proyecto-SIS330\Preprocesamiento\Videos\Video40.mp4"
     output_folder = "F:\Proyecto-SIS330\Preprocesamiento\Images"
     frame_rate = 1  # Extrae una imagen por segundo
 
