@@ -1,6 +1,6 @@
-from ActorNetwork import ActorNetwork
-from CriticNetwork import CriticNetwork
-from PPOMemory import PPOMemory
+from PPO.ActorNetwork import ActorNetwork
+from PPO.CriticNetwork import CriticNetwork
+from PPO.PPOMemory import PPOMemory
 import torch
 import numpy as np
 

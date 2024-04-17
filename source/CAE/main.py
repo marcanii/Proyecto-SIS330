@@ -5,8 +5,8 @@ from PIL import Image
 from torchvision import transforms
 
 if __name__ == '__main__':
-    img_path = 'source/CAE/1.jpg'
-    transforms = transforms.Compose([transforms.Resize((472, 840)), transforms.ToTensor()])
+    img_path = 'source/CAE/2.jpg'
+    transforms = transforms.Compose([transforms.Resize((480, 864)), transforms.ToTensor()])
     img_pil = Image.open(img_path)
     img = transforms(img_pil).unsqueeze(0)
     print(img.shape)

@@ -1,5 +1,4 @@
 import cv2
-from Yolo.yolo_seg import YoloSegmentation
 
 class Camera:
     def __init__(self):
