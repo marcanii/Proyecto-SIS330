@@ -20,12 +20,10 @@ class Camera:
 class Environment:
     def __init__(self):
         self.camera = Camera()
-        self.modelSegmentatio = YoloSegmentation()
     
     def observation(self):
         frame = self.camera.getImage()
-        seg = self.modelSegmentatio(frame)
-        return seg
+        return frame
 
     def step(self, action):
         pass
