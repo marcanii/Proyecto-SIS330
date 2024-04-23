@@ -11,10 +11,10 @@ if __name__ == '__main__':
     env = Environment()
     modelSegmentation = YoloSegmentation()
     maxPooling = MaxPooling()
-    agent = Agent(5, 3*60*108) # webcam with 3*64*108 
+    agent = Agent(5, 3*64*108) # webcam with 3*64*108 
 
-    #img = env.observation()
-    img = cv2.imread("F:\Proyecto-SIS330\source\\2.jpg")
+    img = env.observation()
+    #img = cv2.imread("F:\Proyecto-SIS330\source\\2.jpg")
     print("InputImage: ", img.shape)
     seg_image = modelSegmentation.segment_image(img)
     print("SegImage: ", seg_image.shape)
