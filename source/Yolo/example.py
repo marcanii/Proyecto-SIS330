@@ -1,79 +1,76 @@
+import math
+import time
 import cv2
 import numpy as np
-import matplotlib.pyplot as plt
+import onnxruntime
 
-# Cargar el modelo YOLOv5
-net = cv2.dnn.readNet("F:\Proyecto-SIS330\source\Yolo\\runs\segment\\train\weights\\best.onnx")
+class YOLOSeg:
+    def __init__(self, path, conf_thres=0.7, iou_thres=0.5, num_masks=32):
+        self.conf_threshold = conf_thres
+        self.iou_threshold = iou_thres
+        self.num_masks = num_masks
 
-# Leer la imagen de entrada
-image_path = "F:\Proyecto-SIS330\source\Yolo\\1.jpg"
-image = cv2.imread(image_path)
+        # Initialize model
+        self.initialize_model(path)
 
-# Convertir la imagen a RGB
-image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
+    def __call__(self, image):
+        return self.segment_objects(image)
+    
+    def initialize_model(self, path):
+        self.session = onnxruntime.InferenceSession(path, providers=['CUDAExecutionProvider',
+                                                               'CPUExecutionProvider'])
+        # Get model info
+        self.get_input_details()
+        self.get_output_details()
 
-# Crear un blob a partir de la imagen
-blob = cv2.dnn.blobFromImage(image, 1/255.0, (864, 480), swapRB=True, crop=False)
+    def segment_objects(self, image):
+        input_tensor = self.prepare_input(image)
+        # Perform inference on the image
+        outputs = self.inference(input_tensor)
+        return outputs
+    
+    def prepare_input(self, image):
+        self.img_height, self.img_width = image.shape[:2]
 
-# Establecer la entrada del modelo
-net.setInput(blob)
+        input_img = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
 
-# Obtener la salida del modelo
-output = net.forward()
+        # Resize input image
+        input_img = cv2.resize(input_img, (self.input_width, self.input_height))
 
-# Obtener la forma de la salida
-output_shape = output.shape
+        # Scale input pixel values to 0 to 1
+        input_img = input_img / 255.0
+        input_img = input_img.transpose(2, 0, 1)
+        input_tensor = input_img[np.newaxis, :, :, :].astype(np.float32)
 
-# Extraer las dimensiones de la imagen original
-original_image_height, original_image_width = image.shape[:2]
+        return input_tensor
+    
+    def inference(self, input_tensor):
+        #start = time.perf_counter()
+        outputs = self.session.run(self.output_names, {self.input_names[0]: input_tensor})
 
-# Inicializar una máscara vacía
-mask = np.zeros((original_image_height, original_image_width), dtype=np.uint8)
+        #print(f"Inference time: {(time.perf_counter() - start)*1000:.2f} ms")
+        return outputs
+    
+    def get_input_details(self):
+        model_inputs = self.session.get_inputs()
+        self.input_names = [model_inputs[i].name for i in range(len(model_inputs))]
 
-# Recorrer las predicciones de cada clase
-for class_index in range(output_shape[1]):
-    # Obtener las predicciones para la clase actual
-    class_predictions = output[0, class_index]
+        self.input_shape = model_inputs[0].shape
+        self.input_height = self.input_shape[2]
+        self.input_width = self.input_shape[3]
 
-    # Recorrer las detecciones de la clase actual
-    for detection in class_predictions:
-        # Obtener la puntuación de confianza de la detección
-        confidence = detection[5]
+    def get_output_details(self):
+        model_outputs = self.session.get_outputs()
+        self.output_names = [model_outputs[i].name for i in range(len(model_outputs))]
 
-        # Filtrar detecciones con baja confianza
-        if confidence < 0.5:
-            continue
+if __name__ == '__main__':
+    model_path = "source/Yolo/runs/segment/train3/weights/best.onnx"
 
-        # Obtener las coordenadas del cuadro delimitador
-        xmin, ymin, xmax, ymax = detection[:4] * original_image_width, detection[:4] * original_image_height
+    # Initialize YOLOv8 Instance Segmentator
+    yoloseg = YOLOSeg(model_path, conf_thres=0.3, iou_thres=0.5)
 
-        # Extraer la máscara de la detección
-        detection_mask = output[0, class_index + 6:class_index + 6 + 120 * 216].reshape((216, 120))
+    img = cv2.imread("source/Yolo/1.jpg")
 
-        # Redimensionar la máscara de la detección a la imagen original
-        resized_mask = cv2.resize(detection_mask, dsize=(int(xmax - xmin), int(ymax - ymin)))
-
-        # Superponer la máscara de la detección a la máscara final
-        mask[int(ymin):int(ymax), int(xmin):int(xmax)] = np.maximum(mask[int(ymin):int(ymax), int(xmin):int(xmax)], resized_mask)
-
-# Convertir la máscara a escala de grises
-mask = cv2.cvtColor(mask, cv2.COLOR_GRAY2BGR)
-
-# Mostrar la imagen y la máscara
-plt.subplot(121), plt.imshow(image), plt.title('Imagen original')
-plt.subplot(122), plt.imshow(mask), plt.title('Máscara segmentada')
-plt.show()
-# a = output[0][0]
-# # aplica sigmoid 
-# sigmoid_a = 1 / (1 + np.exp(-a))
-# binary_a = np.where(sigmoid_a > 0.5, 1, 0)
-# plt.figure(figsize=(8, 6))
-# plt.imshow(binary_a, cmap='gray')
-# plt.axis('off')
-# plt.title("Salida binarizada")
-# plt.show()
-
-# # Imprime información
-# print("Forma de la salida binarizada:", binary_a.shape)
-# print("Valor mínimo:", binary_a.min())
-# print("Valor máximo:", binary_a.max())
+    # Detect Objects
+    img_tensor = yoloseg.segment_objects(img)
+    print(img_tensor.shape, type(img_tensor))
