@@ -5,27 +5,12 @@ import torch.nn as nn
 import torchvision.models as models
 from torch.distributions.categorical import Categorical 
 
-# Define una capa convolucional personalizada para aceptar imágenes en blanco y negro
-class CustomConv2d(nn.Conv2d):
-    def __init__(self, in_channels, out_channels, kernel_size, stride=1,
-                         padding=0, dilation=1, groups=1, bias=True):
-        super(CustomConv2d, self).__init__(
-                    in_channels, out_channels, kernel_size, stride, padding, dilation, groups, bias)
-        
-        def forward(self, x):
-                # Asumiendo que la entrada es una sola capa (escala de grises)
-            if x.dim() == 3:
-                x = x.unsqueeze(1)
-            return super(CustomConv2d, self).forward(x)
-
 class ActorNetwork(nn.Module):
     def __init__(self, n_outputs, alpha, pretrained=False, freeze=False, chkpt_dir='tmp/ppo'):
         super(ActorNetwork, self).__init__()
         # Reemplaza la primera capa convolucional de ResNet con la capa personalizada
-        resnet50 = models.resnet50(weights=None if not pretrained else 'imagenet')
-        resnet50.conv1 = CustomConv2d(1, 64, kernel_size=(7, 7), stride=(2, 2), padding=(3, 3), bias=False)
-        
-        #resnet50 = models.resnet50(weights=None if not pretrained else 'imagenet')
+        resnet50 = models.resnet50(weights='ResNet50_Weights.IMAGENET1K_V1')
+        resnet50.conv1 = nn.Conv2d(2, 64, kernel_size=(7, 7), stride=(2, 2), padding=(3, 3), bias=False)
         self.resnet50 = nn.Sequential(*list(resnet50.children())[:-1])
         if freeze:
             for param in self.resnet50.parameters():
@@ -36,6 +21,7 @@ class ActorNetwork(nn.Module):
 
         self.checkpoint_file = os.path.join(chkpt_dir, 'critic_ppo')
         self.optimizer = optim.Adam(self.parameters(), lr=alpha)
+
         if torch.cuda.is_available():
             print("ActorNetwork esta usando CUDA...")
             self.device = "cuda:0"

@@ -82,9 +82,9 @@ class YOLOSeg:
         outputs = self.inferences(input_tensor)
         self.boxes, self.scores, self.class_ids, mask_pred = self.process_box_output(outputs[0])
         self.mask_maps = self.process_mask_output(mask_pred, outputs[1])
-        #self.mask_maps = self.binary_mask(self.mask_maps)
+        self.mask_maps = self.binary_mask(self.mask_maps)
         return self.mask_maps
-    
+
     def prepare_input(self, image):
         self.img_height, self.img_width = image.shape[:2]
 
@@ -219,42 +219,65 @@ class YOLOSeg:
         model_outputs = self.session.get_outputs()
         self.output_names = [model_outputs[i].name for i in range(len(model_outputs))]
 
+    def binary_mask(self, mask_maps):
+        mask_maps = np.array(mask_maps)
+        # Obtener la dimensión de la primera dimensión
+        n = mask_maps.shape[0]
+        print("N: ", n)
+        # Crear una nueva matriz de dimensión (2, 480, 864) inicializada con ceros
+        reshaped_output = np.zeros((2, self.img_height, self.img_width))
+
+        # Caso 1: Si la entrada es de un solo canal
+        if n == 1:
+            reshaped_output[0] = mask_maps[0]
+        # Caso 2: Si la entrada tiene más de un canal
+        else:
+            reshaped_output[0] = mask_maps[0]
+            # Si la dimensión original es mayor que 2, calcular la media de los canales restantes y asignarla al segundo canal
+            if n > 2:
+                reshaped_output[1] = np.mean(mask_maps[2:], axis=0)
+            else:
+                reshaped_output[1] = mask_maps[1]
+        
+        return reshaped_output
+
 if __name__ == '__main__':
     model_path = "source/Yolo/runs/segment/train3/weights/best.onnx"
 
     # Initialize YOLOv8 Instance Segmentator
     yoloseg = YOLOSeg(model_path, conf_thres=0.3, iou_thres=0.5)
 
-    img = cv2.imread("source/Yolo/3.jpg")
-
+    img = cv2.imread("source/Yolo/4.jpg")
+    img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
+    print("Input Shape: ", img.shape)
     # Detect Objects
     mask_maps = yoloseg(img)
     print(mask_maps.shape, mask_maps.min(), mask_maps.max())
     # Crear una figura y ejes para los subgráficos
-    fig, axes = plt.subplots(1, 4, figsize=(15, 5))
+    fig, axes = plt.subplots(1, 3, figsize=(15, 5))
 
-    # Mostrar la primera máscara
+    # # Mostrar la primera máscara
     axes[0].imshow(mask_maps[0], cmap='gray')
     axes[0].set_title("Mask Map 1")
     axes[0].axis('off')
 
-    # Mostrar la segunda máscara
+    # # Mostrar la segunda máscara
     axes[1].imshow(mask_maps[1], cmap='gray')
     axes[1].set_title("Mask Map 2")
     axes[1].axis('off')
 
-    # Mostrar la imagen original
+    # # Mostrar la imagen original
     axes[2].imshow(img)
     axes[2].set_title("Original Image")
     axes[2].axis('off')
 
-    # Mostrar la tercera máscara
-    axes[3].imshow(mask_maps[2], cmap='gray')
-    axes[3].set_title("Mask Map 3")
-    axes[3].axis('off')
+    # # Mostrar la tercera máscara
+    # axes[3].imshow(mask_maps[2], cmap='gray')
+    # axes[3].set_title("Mask Map 3")
+    # axes[3].axis('off')
 
-    # Ajustar el diseño
+    # # Ajustar el diseño
     plt.tight_layout()
 
-    # Mostrar la figura
+    # # Mostrar la figura
     plt.show()

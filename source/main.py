@@ -7,31 +7,16 @@ from PPO.Agent import Agent
 from CAE.maxPooling import MaxPooling
 import matplotlib.pyplot as plt
 
-def convert_to_grayscale(image):
-    # Tomar la media de los dos canales para cada píxel
-    grayscale_image = np.mean(image, axis=0, keepdims=True)
-    return grayscale_image
-
-def convert_to_two_channels(image):
-    # Reorganizar los ejes para tener el formato (altura, ancho, canales)
-    image_reordered = np.transpose(image, (1, 2, 0))
-    # Seleccionar solo los dos primeros canales
-    two_channel_image = image_reordered[:, :, :2]
-    return two_channel_image
-
 if __name__ == '__main__':
     env = Environment()
     modelSegmentation = YOLOSeg("source/Yolo/runs/segment/train3/weights/best.onnx")
     maxPooling = MaxPooling()
-    agent = Agent(5, 1*60*108) # webcam with 3*64*108 
+    agent = Agent(5, 2*59*105) # webcam with 3*64*108 
 
     #img = env.observation()
-    img = cv2.imread("source/2.jpg")
+    img = cv2.imread("source/4.jpg")
     print("InputImage: ", img.shape)
     seg_image = modelSegmentation(img)
-    print("SegImage: ", type(seg_image))
-    seg_image = convert_to_two_channels(seg_image)
-    seg_image = convert_to_grayscale(seg_image)
     print("SegImage: ", seg_image.shape)
     seg_image_torch = torch.from_numpy(seg_image).unsqueeze(0)
     print("SegImageTorch: ", seg_image_torch.shape)
@@ -43,19 +28,23 @@ if __name__ == '__main__':
     print("Probs: ", probs)
     print("Value: ", value)
 
-    seg_image = (seg_image * 255).astype(np.uint8).transpose(1, 2, 0)
-    inputImgPOO=inputImgPOO.squeeze(0).permute(1, 2, 0).detach().numpy()
+    fig, axes = plt.subplots(1, 3, figsize=(15, 5))
+    axes[0].imshow(cv2.cvtColor(img, cv2.COLOR_BGR2RGB))
+    axes[0].set_title("Input Image")
+    axes[0].axis('off')
 
-    while True:
-        print("----------------------------------------------")
-        print("InputImage: ", img.shape)
-        cv2.imshow("Image Input", img)
-        #seg_image = (seg_image * 255).astype(np.uint8).transpose(1, 2, 0)
-        print("SegImage: ", seg_image.shape)
-        cv2.imshow("Mask", seg_image)
-        print("InputImagePOO: ", inputImgPOO.shape)
-        cv2.imshow("InputImagePOO", inputImgPOO)
-        if cv2.waitKey(1) & 0xFF == ord('q'):  # Presiona 'q' para salir
-            break
+    seg_image = np.transpose(seg_image, (1, 2, 0))
+    seg_image_gray = np.mean(seg_image, axis=2)
+    axes[1].set_title("Segmentation Image")
+    axes[1].imshow(seg_image_gray, cmap=None)
+    axes[1].axis('off')
 
-    cv2.destroyAllWindows()
+    axes[2].set_title("MaxPooling Image")
+    inputImgPOO = inputImgPOO.squeeze(0).permute(1, 2, 0).detach().numpy()
+    inputImgPOO = np.mean(inputImgPOO, axis=2)
+    axes[2].imshow(inputImgPOO, cmap=None)
+    axes[2].axis('off')
+    # # Ajustar el diseño
+    plt.tight_layout()
+    # # Mostrar la figura
+    plt.show()

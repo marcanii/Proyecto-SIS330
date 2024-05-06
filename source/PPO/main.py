@@ -1,17 +1,11 @@
+import torch
 from Agent import Agent
-from ActorNetwork import *
-from Environment import Environment
-import numpy as np
 import cv2
 
 if __name__ == '__main__':
-    env = Environment()
-    frame = env.observation()
-    while True:
-        cv2.imshow("Camara", frame)
-        if cv2.waitKey(1) & 0xFF == ord('q'):  # Presiona 'q' para salir
-            break
-    cv2.destroyAllWindows()
+    agent = Agent(5, 2*60*108)
+    outputs = agent.choose_action(torch.randn(1, 2, 60, 108))
+    print("Outputs: \n", outputs.shape, outputs)
     # N = 5
     # batch_size = 5
     # n_epochs = 4
