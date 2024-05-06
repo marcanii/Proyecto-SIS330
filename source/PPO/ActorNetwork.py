@@ -3,13 +3,13 @@ import torch
 import torch.optim as optim
 import torch.nn as nn
 import torchvision.models as models
-from torch.distributions.categorical import Categorical 
+from torch.distributions.categorical import Categorical
 
 class ActorNetwork(nn.Module):
     def __init__(self, n_outputs, alpha, pretrained=False, freeze=False, chkpt_dir='tmp/ppo'):
         super(ActorNetwork, self).__init__()
         # Reemplaza la primera capa convolucional de ResNet con la capa personalizada
-        resnet50 = models.resnet50(weights='ResNet50_Weights.IMAGENET1K_V1')
+        resnet50 = models.resnet50(pretrained='ResNet50_Weights.IMAGENET1K_V1')
         resnet50.conv1 = nn.Conv2d(2, 64, kernel_size=(7, 7), stride=(2, 2), padding=(3, 3), bias=False)
         self.resnet50 = nn.Sequential(*list(resnet50.children())[:-1])
         if freeze:

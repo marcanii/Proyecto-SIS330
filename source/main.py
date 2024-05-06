@@ -5,11 +5,14 @@ from PPO.Environment import Environment
 from Yolo.yolo_seg1 import YOLOSeg
 from PPO.Agent import Agent
 from CAE.maxPooling import MaxPooling
+import matplotlib
+matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 
 if __name__ == '__main__':
     env = Environment()
-    modelSegmentation = YOLOSeg("source/Yolo/runs/segment/train3/weights/best.onnx")
+    
+    modelSegmentation = YOLOSeg("/home/jetson/Proyecto-SIS330/source/Yolo/runs/segment/train3/weights/best_opset_12.onnx")
     maxPooling = MaxPooling()
     agent = Agent(5, 2*59*105) # webcam with 3*64*108 
 
@@ -47,4 +50,4 @@ if __name__ == '__main__':
     # # Ajustar el diseño
     plt.tight_layout()
     # # Mostrar la figura
-    plt.show()
+    plt.savefig('figura.png', dpi=300, bbox_inches='tight')
