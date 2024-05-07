@@ -1,4 +1,5 @@
 import cv2
+import time 
 
 gst_str = (
     "nvarguscamerasrc ! "
@@ -15,7 +16,10 @@ class Camera:
         self.video = cv2.VideoCapture(gst_str, cv2.CAP_GSTREAMER)
 
     def getImage(self):
-        ret, frame = self.video.read()
+        for _ in range(5):
+            ret, frame = self.video.read()
+            time.sleep(0.1)
+
         if ret:
             return frame
         else:

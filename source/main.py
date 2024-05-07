@@ -50,4 +50,4 @@ if __name__ == '__main__':
     # # Ajustar el diseño
     plt.tight_layout()
     # # Mostrar la figura
-    plt.savefig('figura01.png', dpi=300, bbox_inches='tight')
+    plt.savefig('figura02.png', dpi=300, bbox_inches='tight')
