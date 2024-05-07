@@ -14,10 +14,10 @@ if __name__ == '__main__':
     
     modelSegmentation = YOLOSeg("/home/jetson/Proyecto-SIS330/source/Yolo/runs/segment/train3/weights/best_opset_12.onnx")
     maxPooling = MaxPooling()
-    agent = Agent(5, 2*59*105) # webcam with 3*64*108 
+    agent = Agent(5, 2*60*108) # webcam with 3*64*108 
 
-    #img = env.observation()
-    img = cv2.imread("source/4.jpg")
+    img = env.observation()
+    #img = cv2.imread("source/4.jpg")
     print("InputImage: ", img.shape)
     seg_image = modelSegmentation(img)
     print("SegImage: ", seg_image.shape)
@@ -50,4 +50,4 @@ if __name__ == '__main__':
     # # Ajustar el diseño
     plt.tight_layout()
     # # Mostrar la figura
-    plt.savefig('figura.png', dpi=300, bbox_inches='tight')
+    plt.savefig('figura01.png', dpi=300, bbox_inches='tight')

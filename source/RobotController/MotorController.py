@@ -2,7 +2,7 @@ import time
 import traitlets
 from traitlets.config.configurable import SingletonConfigurable
 from Adafruit_MotorHAT import Adafruit_MotorHAT, Adafruit_DCMotor
-from Motor import Motor
+from RobotController.Motor import Motor
 
 class MotorController(SingletonConfigurable):
     left_front_motor = traitlets.Instance(Motor)
@@ -98,3 +98,17 @@ class MotorController(SingletonConfigurable):
         self.right_front_motor.value = -speed
         self.left_back_motor.value = -speed
         self.right_back_motor.value = 0
+    
+    def turnLeft(self, speed=1.0):
+        print("Girando Izquierda...")
+        self.left_front_motor.value = -speed
+        self.right_front_motor.value = speed
+        self.left_back_motor.value = -speed
+        self.right_back_motor.value = speed
+    
+    def turnRight(self, speed=1.0):
+        print("Girando Derecha...")
+        self.left_front_motor.value = speed
+        self.right_front_motor.value = -speed
+        self.left_back_motor.value = speed
+        self.right_back_motor.value = -speed
