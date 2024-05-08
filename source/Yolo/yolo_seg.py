@@ -3,7 +3,7 @@ import math
 import numpy as np
 import onnxruntime
 import matplotlib
-#matplotlib.use('Agg')
+matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 
 def compute_iou(box, boxes):

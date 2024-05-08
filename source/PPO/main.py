@@ -1,11 +1,9 @@
-import torch
-from Agent import Agent
-import cv2
+import torchvision.models as models
+from ActorNetwork import MobileNetActor
 
 if __name__ == '__main__':
-    agent = Agent(5, 2*60*108)
-    outputs = agent.choose_action(torch.randn(1, 2, 60, 108))
-    print("Outputs: \n", outputs.shape, outputs)
+    actor = MobileNetActor(8, 0.0003, pretrained=True, freeze=False)
+    print(actor)
     # N = 5
     # batch_size = 5
     # n_epochs = 4

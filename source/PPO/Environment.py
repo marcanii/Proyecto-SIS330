@@ -8,7 +8,6 @@ gst_str = (
     "video/x-raw, width=(int)864, height=(int)480, format=(string)BGRx ! "
     "videoconvert ! "
     "appsink"
-
 )
 
 class Camera:

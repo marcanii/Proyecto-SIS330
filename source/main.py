@@ -6,18 +6,18 @@ from Yolo.yolo_seg import YOLOSeg
 from PPO.Agent import Agent
 from CAE.maxPooling import MaxPooling
 import matplotlib
-#matplotlib.use('Agg')
+matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 
 if __name__ == '__main__':
     env = Environment()
-    model_path = "source/Yolo/runs/segment/train3/weights/best.onnx"
+    model_path = "source/Yolo/runs/segment/train5/weights/best_opset_12s.onnx"
     modelSegmentation = YOLOSeg(model_path, conf_thres=0.4, iou_thres=0.4)
     maxPooling = MaxPooling()
     agent = Agent(5, 2*60*108) # webcam with 3*64*108 
 
-    #img = env.observation()
-    img = cv2.imread("source/2.jpg")
+    img = env.observation()
+    #img = cv2.imread("source/2.jpg")
     print("InputImage: ", img.shape)
     seg_image = modelSegmentation(img)
     print("SegImage: ", seg_image.shape)
@@ -50,5 +50,5 @@ if __name__ == '__main__':
     # # Ajustar el diseño
     plt.tight_layout()
     # # Mostrar la figura
-    plt.show()
-    #plt.savefig('figura02.png', dpi=300, bbox_inches='tight')
+    #plt.show()
+    plt.savefig('figura03.png', dpi=300, bbox_inches='tight')
