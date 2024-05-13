@@ -1,9 +1,13 @@
 import torchvision.models as models
-from ActorNetwork import MobileNetActor
+from ActorNetwork import MyModelActorCNN, MobileNetActor
+import torch
 
 if __name__ == '__main__':
-    actor = MobileNetActor(8, 0.0003, pretrained=True, freeze=False)
-    print(actor)
+    #actor = models.mobilenet_v3_small(pretrained=True)
+    actor = MobileNetActor(8, 0.0003, False)
+    #print(actor)
+    out = actor(torch.randn(1, 2, 60, 108))
+    print(out)
     # N = 5
     # batch_size = 5
     # n_epochs = 4

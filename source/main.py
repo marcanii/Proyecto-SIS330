@@ -1,23 +1,25 @@
 import cv2
 import torch
 import numpy as np
-from PPO.Environment import Environment
+from source.Environment import Environment
 from Yolo.yolo_seg import YOLOSeg
 from PPO.Agent import Agent
 from CAE.maxPooling import MaxPooling
 import matplotlib
 matplotlib.use('Agg')
 import matplotlib.pyplot as plt
+import time
 
 if __name__ == '__main__':
-    env = Environment()
+    #env = Environment()
     model_path = "source/Yolo/runs/segment/train5/weights/best_opset_12s.onnx"
-    modelSegmentation = YOLOSeg(model_path, conf_thres=0.4, iou_thres=0.4)
+    modelSegmentation = YOLOSeg(model_path, conf_thres=0.3, iou_thres=0.2)
     maxPooling = MaxPooling()
-    agent = Agent(5, 2*60*108) # webcam with 3*64*108 
-
-    img = env.observation()
-    #img = cv2.imread("source/2.jpg")
+    agent = Agent(5, 2*59*108, cuda=False) # webcam with 3*64*108 
+    
+    startTime = time.time()
+    #img = env.observation()
+    img = cv2.imread("source/4.jpg")
     print("InputImage: ", img.shape)
     seg_image = modelSegmentation(img)
     print("SegImage: ", seg_image.shape)
@@ -30,7 +32,8 @@ if __name__ == '__main__':
     print("Action: ", action)
     print("Probs: ", probs)
     print("Value: ", value)
-
+    endTime = time.time()
+    print("Tiempo en segundos: ", endTime - startTime)
     fig, axes = plt.subplots(1, 3, figsize=(15, 5))
     axes[0].imshow(cv2.cvtColor(img, cv2.COLOR_BGR2RGB))
     axes[0].set_title("Input Image")
@@ -51,4 +54,4 @@ if __name__ == '__main__':
     plt.tight_layout()
     # # Mostrar la figura
     #plt.show()
-    plt.savefig('figura03.png', dpi=300, bbox_inches='tight')
+    plt.savefig('figura04.png', dpi=300, bbox_inches='tight')
