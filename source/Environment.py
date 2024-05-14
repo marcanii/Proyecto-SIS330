@@ -38,7 +38,7 @@ class Environment:
     def __init__(self):
         self.camera = Camera()
         #self.takeAction = TakeAction()
-        self.yoloSeg = YOLOSeg("source/Yolo/runs/segment/train5/weights/best_opset_12s.onnx", conf_thres=0.3, iou_thres=0.2)
+        self.yoloSeg = YOLOSeg("source/Yolo/runs/segment/train3/weights/best.onnx", conf_thres=0.3, iou_thres=0.2)
         self.maxPooling = MaxPooling()
     
     def observation(self):
@@ -49,7 +49,7 @@ class Environment:
         #self.takeAction.action(action)
         #time.sleep(0.5)
 
-        imgSeg = self.yoloSeg(cv2.imread("source/4.jpg"))
+        imgSeg = self.yoloSeg(cv2.imread("source/3.jpg"))
         print("SegImage: ", imgSeg.shape)
         imgSeg = torch.from_numpy(imgSeg).unsqueeze(0)
         imgSeg = self.maxPooling(imgSeg)
@@ -65,16 +65,16 @@ class Environment:
         masks = masks.squeeze(0).detach().numpy()
         binary_masks = np.zeros_like(masks)
         print("BinaryMasks: ", binary_masks.shape)
-        
+        binary_masks[masks >= 0.5] = 1
         # Sumar los píxeles de cada máscara binaria
         mask_sums = binary_masks.sum(axis=(1, 2))
-        print("Sum 0 = ", mask_sums[0])
-        print("Sum 1 = ", mask_sums[1])
+        print("Sum camino = ", mask_sums[0])
+        print("Sum obs = ", mask_sums[1])
         # Comparar las sumas y calcular la recompensa
         if mask_sums[0] > mask_sums[1]:
-            reward = -5
-        elif mask_sums[1] > mask_sums[0]:
             reward = 1
+        elif mask_sums[1] > mask_sums[0]:
+            reward = -5
         else:
             reward = 0
         

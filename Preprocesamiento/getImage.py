@@ -22,7 +22,7 @@ def extract_images(video_path, output_folder, frame_rate=1):
     new_height = int((840 / 1920) * 1080)
 
     while success:
-        if index % (fps * frame_rate) == 0:
+        if index % (fps * frame_rate) >= 0 and index % (fps * frame_rate) < 1:
             resized_frame = cv2.resize(frame, (new_width, new_height))
             file_name = f"frame_{index}.jpg"
             file_path = os.path.join(output_folder, file_name)
@@ -35,7 +35,7 @@ def extract_images(video_path, output_folder, frame_rate=1):
     cv2.destroyAllWindows()
 
 if __name__ == "__main__":
-    video_path = "F:\Proyecto-SIS330\Preprocesamiento\Videos\Video40.mp4"
+    video_path = "F:\Proyecto-SIS330\Preprocesamiento\Videos\Video22.mp4"
     output_folder = "F:\Proyecto-SIS330\Preprocesamiento\Images"
     frame_rate = 1  # Extrae una imagen por segundo
 
