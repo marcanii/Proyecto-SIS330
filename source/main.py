@@ -10,15 +10,15 @@ import matplotlib.pyplot as plt
 import time
 
 if __name__ == '__main__':
-    #env = Environment()
-    model_path = "source/Yolo/runs/segment/train3/weights/best.onnx"
+    #env = Environment() F:\Proyecto-SIS330\source\Yolo\runs\segment\train4\weights\best.onnx
+    model_path = "source/Yolo/runs/segment/train5/weights/best.onnx"
     modelSegmentation = YOLOSeg(model_path, conf_thres=0.3, iou_thres=0.2)
     maxPooling = MaxPooling()
     agent = Agent(5, 2*59*108, cuda=False) # webcam with 3*64*108 
     
     startTime = time.time()
     #img = env.observation()
-    img = cv2.imread("source/3.jpg")
+    img = cv2.imread("source/1.jpg")
     print("InputImage: ", img.shape)
     seg_image = modelSegmentation(img)
     print("SegImage: ", seg_image.shape)
