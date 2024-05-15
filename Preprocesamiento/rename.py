@@ -20,5 +20,5 @@ def rename_images(input_path, output_path, start_index=1):
 
 input_path = "F:\Proyecto-SIS330\Preprocesamiento\Images"
 output_path = "F:\Proyecto-SIS330\Preprocesamiento\RenameImages"
-rename_images(input_path, output_path, start_index=2143)
+rename_images(input_path, output_path, start_index=2369)
 print("Renombrado de imágenes completado...")
