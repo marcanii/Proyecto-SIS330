@@ -1,56 +1,84 @@
-import cv2
 import torch
-import numpy as np
-from Yolo.yolo_seg import YOLOSeg
 from PPO.Agent import Agent
+from Yolo.yolo_seg import YOLOSeg
 from CAE.maxPooling import MaxPooling
-import matplotlib
-#matplotlib.use('Agg')
-import matplotlib.pyplot as plt
+from flask import Flask, request, jsonify
+from Environment import Environment
+import cv2
+import numpy as np
 import time
 
-if __name__ == '__main__':
-    #env = Environment() F:\Proyecto-SIS330\source\Yolo\runs\segment\train4\weights\best.onnx
-    model_path = "source/Yolo/runs/segment/train5/weights/best.onnx"
-    modelSegmentation = YOLOSeg(model_path, conf_thres=0.3, iou_thres=0.2)
-    maxPooling = MaxPooling()
-    agent = Agent(5, 2*59*108, cuda=False) # webcam with 3*64*108 
-    
-    startTime = time.time()
-    #img = env.observation()
-    img = cv2.imread("source/1.jpg")
-    print("InputImage: ", img.shape)
-    seg_image = modelSegmentation(img)
-    print("SegImage: ", seg_image.shape)
-    seg_image_torch = torch.from_numpy(seg_image).unsqueeze(0)
-    print("SegImageTorch: ", seg_image_torch.shape)
-    inputImgPOO = maxPooling(seg_image_torch)
-    print("InputImagePOO: ", inputImgPOO.shape)
-    inputImgPOO = inputImgPOO.to(torch.float32)
-    action, probs, value = agent.choose_action(inputImgPOO)
-    print("Action: ", action)
-    print("Probs: ", probs)
-    print("Value: ", value)
-    endTime = time.time()
-    print("Tiempo en segundos: ", endTime - startTime)
-    fig, axes = plt.subplots(1, 3, figsize=(15, 5))
-    axes[0].imshow(cv2.cvtColor(img, cv2.COLOR_BGR2RGB))
-    axes[0].set_title("Input Image")
-    axes[0].axis('off')
+model_path = "source/Yolo/runs/segment/train3/weights/best.onnx"
+modelSegmentation = YOLOSeg(model_path, conf_thres=0.7, iou_thres=0.5)
+env = Environment()
+maxPooling = MaxPooling()
+batch_size = 5
+n_epochs = 4
+alpha = 0.0003
+agent = Agent(n_actions=11, cuda=True, batch_size=batch_size, alpha=alpha, n_epochs=n_epochs)
 
-    seg_image = np.transpose(seg_image, (1, 2, 0))
-    seg_image_gray = np.mean(seg_image, axis=2)
-    axes[1].set_title("Segmentation Image")
-    axes[1].imshow(seg_image_gray, cmap=None)
-    axes[1].axis('off')
 
-    axes[2].set_title("MaxPooling Image")
-    inputImgPOO = inputImgPOO.squeeze(0).permute(1, 2, 0).detach().numpy()
-    inputImgPOO = np.mean(inputImgPOO, axis=2)
-    axes[2].imshow(inputImgPOO, cmap=None)
-    axes[2].axis('off')
-    # # Ajustar el diseño
-    plt.tight_layout()
-    # # Mostrar la figura
-    plt.show()
-    #plt.savefig('figura04.png', dpi=300, bbox_inches='tight')
+app = Flask(__name__)
+
+@app.route('/', methods=['GET'])
+def process_request():
+    return jsonify({'message': 'API is running'})
+
+@app.route('/observation', methods=['POST'])
+def get_observation():
+    if 'image' not in request.files:
+        return jsonify({'error': 'No se proporcionó ninguna imagen'}), 400
+
+    image = request.files['image']
+
+    if image.filename == '':
+        return jsonify({'error': 'No se seleccionó ningún archivo'}), 400
+
+    image_data = image.read()
+    img = cv2.imdecode(np.frombuffer(image_data, np.uint8), cv2.IMREAD_UNCHANGED)
+    img_seg = modelSegmentation(img)
+    img_seg_torch = torch.from_numpy(img_seg).unsqueeze(0)
+    img_poo = maxPooling(img_seg_torch)
+    img_poo = img_poo.to(torch.float32)
+    return jsonify({
+        "image": img_poo.tolist()
+    })
+
+@app.route('/step', methods=['POST'])
+def step():
+    if 'action' not in request.json:
+        return jsonify({'error': 'No se proporcionó ninguna acción'}), 400
+
+    action = request.json['action']
+    observation, reward, done = env.step(action)
+    return jsonify({
+        "observation": observation.tolist(),
+        "reward": reward,
+        "done": done,
+    })
+
+@app.route('/chooseAction', methods=['POST'])
+def choose_action():
+    if 'image' not in request.files:
+        return jsonify({'error': 'No se proporcionó ninguna imagen'}), 400
+
+    image = request.files['image']
+
+    if image.filename == '':
+        return jsonify({'error': 'No se seleccionó ningún archivo'}), 400
+
+    image_data = image.read()
+    img = cv2.imdecode(np.frombuffer(image_data, np.uint8), cv2.IMREAD_UNCHANGED)
+    img_seg = modelSegmentation(img)
+    img_seg_torch = torch.from_numpy(img_seg).unsqueeze(0)
+    img_poo = maxPooling(img_seg_torch)
+    img_poo = img_poo.to(torch.float32)
+    action, probs, value = agent.choose_action(img_poo)
+    return jsonify({
+        "action": action,
+        "probs": probs,
+        "value": value
+    })
+
+if __name__ == "__main__":
+    app.run(host='0.0.0.0', port=5000, debug=True)

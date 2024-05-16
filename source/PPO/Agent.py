@@ -5,14 +5,14 @@ import torch
 import numpy as np
 
 class Agent:
-    def __init__(self, n_actions, input_dims, cuda, gamma=0.99, alpha=0.0003, gae_lambda=0.95,
+    def __init__(self, n_actions, cuda, gamma=0.99, alpha=0.0003, gae_lambda=0.95,
                 policy_clip=0.2, batch_size=64, n_epochs=10):
         self.gamma = gamma
         self.policy_clip = policy_clip
         self.n_epochs = n_epochs
         self.gae_lambda = gae_lambda
 
-        self.actor = MobileNetActor(n_actions, alpha, cuda)
+        self.actor = ActorNetwork(n_actions, alpha, cuda)
         self.critic = MyModelCriticCNN(alpha, cuda)
         self.memory = PPOMemory(batch_size)
     

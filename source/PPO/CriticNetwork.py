@@ -43,7 +43,6 @@ class MyModelCriticCNN(nn.Module):
         self.conv3 = nn.Conv2d(64, 64, kernel_size=3, stride=1)
         self.fc1 = nn.Linear(64*4*10, 512)
         self.fc2 = nn.Linear(512, 1)
-        self.softmax = nn.Softmax(dim=-1)
 
         self.checkpoint_file = os.path.join(chkpt_dir, 'critic_ppo')
         self.optimizer = optim.Adam(self.parameters(), lr=alpha)
@@ -65,7 +64,6 @@ class MyModelCriticCNN(nn.Module):
         x = x.view(x.size(0), -1)
         x = nn.functional.relu(self.fc1(x))
         x = self.fc2(x)
-        x = self.softmax(x)
         return x
 
     def save_checkpoint(self):
