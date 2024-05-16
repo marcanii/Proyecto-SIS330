@@ -59,19 +59,10 @@ def step():
 
 @app.route('/chooseAction', methods=['POST'])
 def choose_action():
-    if 'image' not in request.files:
+    if 'image' not in request.json:
         return jsonify({'error': 'No se proporcionó ninguna imagen'}), 400
-
-    image = request.files['image']
-
-    if image.filename == '':
-        return jsonify({'error': 'No se seleccionó ningún archivo'}), 400
-
-    image_data = image.read()
-    img = cv2.imdecode(np.frombuffer(image_data, np.uint8), cv2.IMREAD_UNCHANGED)
-    img_seg = modelSegmentation(img)
-    img_seg_torch = torch.from_numpy(img_seg).unsqueeze(0)
-    img_poo = maxPooling(img_seg_torch)
+    img = np.array(request.json['image'])
+    img_poo = torch.from_numpy(img)
     img_poo = img_poo.to(torch.float32)
     action, probs, value = agent.choose_action(img_poo)
     return jsonify({
