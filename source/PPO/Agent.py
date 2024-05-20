@@ -1,5 +1,5 @@
-from PPO.ActorNetwork import ActorNetwork, MobileNetActor, MyModelActorCNN
-from PPO.CriticNetwork import CriticNetwork, MyModelCriticCNN
+from PPO.ActorNetwork import ActorNetwork
+from PPO.CriticNetwork import CriticNetwork
 from PPO.PPOMemory import PPOMemory
 import torch
 import numpy as np
@@ -13,7 +13,7 @@ class Agent:
         self.gae_lambda = gae_lambda
 
         self.actor = ActorNetwork(n_actions, alpha, cuda)
-        self.critic = MyModelCriticCNN(alpha, cuda)
+        self.critic = CriticNetwork(alpha, cuda)
         self.memory = PPOMemory(batch_size)
     
     def remember(self, state, action, probs, vals, reward, done):

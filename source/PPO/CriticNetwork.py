@@ -3,9 +3,9 @@ import torch
 import torch.optim as optim
 import os
 
-class CriticNetwork(nn.Module):
+class CriticNetwork1(nn.Module):
     def __init__(self, input_dims, alpha, cuda, chkpt_dir='tmp/ppo'):
-        super(CriticNetwork, self).__init__()
+        super(CriticNetwork1, self).__init__()
         
         self.lineal1 = nn.Linear(input_dims, 256)
         self.lineal2 = nn.Linear(256, 512)
@@ -35,9 +35,9 @@ class CriticNetwork(nn.Module):
     def load_checkpoint(self):
         self.load_state_dict(torch.load(self.checkpoint_file))
 
-class MyModelCriticCNN(nn.Module):
+class CriticNetwork(nn.Module):
     def __init__(self, alpha, cuda, chkpt_dir='tmp/ppo'):
-        super(MyModelCriticCNN, self).__init__()
+        super(CriticNetwork, self).__init__()
         self.conv1 = nn.Conv2d(2, 32, kernel_size=8, stride=4)
         self.conv2 = nn.Conv2d(32, 64, kernel_size=4, stride=2)
         self.conv3 = nn.Conv2d(64, 64, kernel_size=3, stride=1)

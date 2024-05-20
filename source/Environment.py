@@ -3,7 +3,7 @@ import time
 import torch
 import numpy as np
 #from RobotController.MotorController import MotorController
-from Yolo.yolo_seg import YOLOSeg
+from Yolo.yolo_seg import YoloSeg
 from CAE.maxPooling import MaxPooling
 
 gst_str = (
@@ -38,7 +38,7 @@ class Environment:
     def __init__(self):
         self.camera = Camera()
         #self.takeAction = TakeAction()
-        self.yoloSeg = YOLOSeg("source/Yolo/runs/segment/train3/weights/best.onnx", conf_thres=0.3, iou_thres=0.2)
+        self.yoloSeg = YoloSeg("source/Yolo/runs/segment/train3/weights/best.onnx")
         self.maxPooling = MaxPooling()
     
     def observation(self):
