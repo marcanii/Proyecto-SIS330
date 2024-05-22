@@ -1,6 +1,7 @@
-path: F:\Proyecto-SIS330\dataset\Proyecto-SIS330.v6i.yolov8\
+path: F:\Proyecto-SIS330\dataset\Proyecto-SIS330.v9i.yolov8\
 train: ./train/images
 val: ./valid/images
+test: ./test/images
 
 labels: ['camino', 'obstaculo']
 nc: 2
