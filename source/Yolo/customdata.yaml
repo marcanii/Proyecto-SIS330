@@ -6,10 +6,3 @@ test: ./test/images
 labels: ['camino', 'obstaculo']
 nc: 2
 names: ['camino', 'obstaculo']
-
-roboflow:
-  workspace: usfx-z3zbf
-  project: proyecto-sis330
-  version: 1
-  license: CC BY 4.0
-  url: https://universe.roboflow.com/usfx-z3zbf/proyecto-sis330/dataset/1
