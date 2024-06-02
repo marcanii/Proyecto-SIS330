@@ -1,7 +1,6 @@
 import cv2
 import torch
 import numpy as np
-from Yolo.yolo_seg import YoloSeg
 from UNet.UNet import UNetResnet
 from PPO.Agent import Agent
 from CAE.maxPooling import MaxPooling
@@ -9,29 +8,30 @@ import matplotlib.pyplot as plt
 import time
 
 if __name__ == '__main__':
-    #env = Environment() F:\Proyecto-SIS330\source\Yolo\runs\segment\train4\weights\best.onnx
-    #model_path = "source/Yolo/runs/segment/train3/weights/best.pt"
-    #modelSegmentation = YoloSeg(model_path)
+    device = "cuda" if torch.cuda.is_available() else "cpu"
     model_path = "source/UNet/models/UNetResNet_model_seg_v3_30.pt"
     modelSegmentation = UNetResnet()
     modelSegmentation.load_model(model_path)
+    modelSegmentation.to(device)
     maxPooling = MaxPooling()
-    agent = Agent(5, cuda=True) # webcam with 3*64*108 
+    maxPooling.to(device)
+    agent = Agent(5, cuda=True)
     
     startTime = time.time()
-    #img = env.observation()
-    img = cv2.imread("source/1.jpg")
+    img = cv2.imread("source/3.jpg")
     print("InputImage: ", img.shape)
-    x_input = np.transpose(img, (2, 0, 1))
-    x_input = torch.from_numpy(x_input).unsqueeze(0)
-    x_input = x_input.to(torch.float32)
-    seg_image  = modelSegmentation(x_input)
-    print("SegImage: ", seg_image.shape)
-    seg_image_torch = seg_image
-    print("SegImageTorch: ", seg_image_torch.shape)
-    inputImgPOO = maxPooling(seg_image_torch)
-    print("InputImagePOO: ", inputImgPOO.shape)
-    inputImgPOO = inputImgPOO.to(torch.float32)
+    x_input = torch.from_numpy(np.array(img) / 255.0).float().permute(2, 0, 1).unsqueeze(0).to(device)
+    x_input = x_input.clone().detach()
+    modelSegmentation.eval()
+    with torch.no_grad():
+        output  = modelSegmentation(x_input)[0]
+        mask_img = torch.argmax(output, axis=0) #type: ignore
+    seg_image = mask_img
+    seg_image = seg_image.unsqueeze(0).unsqueeze(0).to(device).float()
+    seg_image = maxPooling(seg_image)
+    print("MaxPooling: ", seg_image.shape)
+    inputImgPOO = seg_image
+    print("InputImagePOO: ", inputImgPOO.shape, inputImgPOO.dtype, inputImgPOO.max(), inputImgPOO.min())
     action, probs, value = agent.choose_action(inputImgPOO)
     print("Action: ", action)
     print("Probs: ", probs)
@@ -43,20 +43,16 @@ if __name__ == '__main__':
     axes[0].set_title("Input Image")
     axes[0].axis('off')
 
-    #seg_image = np.transpose(seg_image, (1, 2, 0))
-    img_seg_show = seg_image.squeeze().detach().numpy()
-    img_seg_show = np.transpose(img_seg_show, (1, 2, 0))
-    img_seg_show = np.clip(img_seg_show, 0, 1)
     axes[1].set_title("Segmentation Image")
-    axes[1].imshow(img_seg_show)
+    axes[1].imshow(mask_img.cpu().numpy())
     axes[1].axis('off')
 
+    inputImgPOO = inputImgPOO.squeeze(0).squeeze(0).cpu()
     axes[2].set_title("MaxPooling Image")
-    inputImgPOO = inputImgPOO.squeeze().detach().numpy()
-    inputImgPOO = np.transpose(inputImgPOO, (1, 2, 0))
-    inputImgPOO = np.clip(inputImgPOO, 0, 1)
-    axes[2].imshow(inputImgPOO)
+    axes[2].imshow(cv2.cvtColor(img, cv2.COLOR_BGR2RGB))
+    axes[2].imshow(inputImgPOO, alpha=1.0)
     axes[2].axis('off')
+    #print(inputImgPOO[59])
     # # Ajustar el diseño
     plt.tight_layout()
     # # Mostrar la figura

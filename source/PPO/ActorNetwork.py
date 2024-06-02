@@ -11,7 +11,7 @@ class ActorNetwork(nn.Module):
         # Reemplaza la primera capa convolucional de ResNet con la capa personalizada
         #resnet50 = models.resnet18(weights='ResNet18_Weights.IMAGENET1K_V1')
         resnet18 = models.resnet18(weights="ResNet18_Weights.IMAGENET1K_V1")
-        #resnet18.conv1 = nn.Conv2d(2, 64, kernel_size=(7, 7), stride=(2, 2), padding=(3, 3), bias=False)
+        resnet18.conv1 = nn.Conv2d(1, 64, kernel_size=(7, 7), stride=(2, 2), padding=(3, 3), bias=False)
         self.resnet18 = nn.Sequential(*list(resnet18.children())[:-1])
         if freeze:
             for param in self.resnet18.parameters():
