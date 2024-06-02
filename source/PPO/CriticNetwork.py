@@ -38,7 +38,7 @@ class CriticNetwork1(nn.Module):
 class CriticNetwork(nn.Module):
     def __init__(self, alpha, cuda, chkpt_dir='tmp/ppo'):
         super(CriticNetwork, self).__init__()
-        self.conv1 = nn.Conv2d(2, 32, kernel_size=8, stride=4)
+        self.conv1 = nn.Conv2d(3, 32, kernel_size=8, stride=4)
         self.conv2 = nn.Conv2d(32, 64, kernel_size=4, stride=2)
         self.conv3 = nn.Conv2d(64, 64, kernel_size=3, stride=1)
         self.fc1 = nn.Linear(64*4*10, 512)

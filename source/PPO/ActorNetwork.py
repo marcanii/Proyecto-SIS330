@@ -11,7 +11,7 @@ class ActorNetwork(nn.Module):
         # Reemplaza la primera capa convolucional de ResNet con la capa personalizada
         #resnet50 = models.resnet18(weights='ResNet18_Weights.IMAGENET1K_V1')
         resnet18 = models.resnet18(weights="ResNet18_Weights.IMAGENET1K_V1")
-        resnet18.conv1 = nn.Conv2d(2, 64, kernel_size=(7, 7), stride=(2, 2), padding=(3, 3), bias=False)
+        #resnet18.conv1 = nn.Conv2d(2, 64, kernel_size=(7, 7), stride=(2, 2), padding=(3, 3), bias=False)
         self.resnet18 = nn.Sequential(*list(resnet18.children())[:-1])
         if freeze:
             for param in self.resnet18.parameters():
@@ -99,7 +99,7 @@ class MobileNetActor(nn.Module):
     def __init__(self, n_outputs, alpha, cuda, pretrained=False, freeze=False, chkpt_dir='tmp/ppo'):
         super(MobileNetActor, self).__init__()
         mobilenet = models.mobilenet_v3_small(pretrained=pretrained)
-        mobilenet.features[0][0] = nn.Conv2d(2, 16, kernel_size=(3, 3), stride=(2, 2), padding=(1, 1), bias=False)
+        #mobilenet.features[0][0] = nn.Conv2d(2, 16, kernel_size=(3, 3), stride=(2, 2), padding=(1, 1), bias=False)
         self.mobilenet = nn.Sequential(*list(mobilenet.children())[:-1])
         if freeze:
             for param in self.mobilenet.parameters():
@@ -144,7 +144,7 @@ class MobileNetActor(nn.Module):
 class MyModelActorCNN(nn.Module):
     def __init__(self, n_outputs, alpha, cuda, chkpt_dir='tmp/ppo'):
         super(MyModelActorCNN, self).__init__()
-        self.conv1 = nn.Conv2d(2, 32, kernel_size=8, stride=4)
+        self.conv1 = nn.Conv2d(3, 32, kernel_size=8, stride=4)
         self.conv2 = nn.Conv2d(32, 64, kernel_size=4, stride=2)
         self.conv3 = nn.Conv2d(64, 64, kernel_size=3, stride=1)
         self.fc1 = nn.Linear(64*4*10, 512)

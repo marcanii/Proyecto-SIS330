@@ -75,3 +75,42 @@ class UNetResnet(torch.nn.Module):
         x = self.deconv3(x, x1)
         x = self.out(x, x_in)
         return x
+    
+    def load_model(self, path):
+        self.load_state_dict(torch.load(path))
+    
+import matplotlib.pyplot as plt
+import numpy as np
+import cv2
+
+if __name__ == '__main__':
+    model = UNetResnet()
+    model.load_model('source/U-Net/models/UNetResNet_model_seg_v3_30.pt')
+    img = cv2.imread("source/6.jpg")
+    x = np.transpose(img, (2, 0, 1))
+    x = np.expand_dims(x, axis=0)
+    x = torch.tensor(x, dtype=torch.float32)
+    print("Input shape: ", x.shape)
+
+    y = model(x)
+    # print("Ouput shape: ", y.shape)
+    y_out = y.squeeze().detach().numpy()
+    y_out = np.transpose(y_out, (1, 2, 0))
+    print(y_out.shape)
+    y_out = np.clip(y_out, 0, 1)
+
+    fig, axes = plt.subplots(1, 3, figsize=(15, 3))
+    axes[0].imshow(cv2.cvtColor(img, cv2.COLOR_BGR2RGB))
+    axes[0].set_title("Input Image")
+    axes[0].axis('off')
+
+    axes[1].imshow(y_out)
+    axes[1].set_title("Mask Image")
+    axes[1].axis('off')
+
+    axes[2].set_title("Segmentation Image")
+    axes[2].imshow(cv2.cvtColor(img, cv2.COLOR_BGR2RGB))
+    axes[2].imshow(y_out, alpha=0.35)
+    axes[2].axis('off')
+
+    plt.show()
