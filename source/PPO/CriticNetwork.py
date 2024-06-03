@@ -36,15 +36,15 @@ class CriticNetwork1(nn.Module):
         self.load_state_dict(torch.load(self.checkpoint_file))
 
 class CriticNetwork(nn.Module):
-    def __init__(self, alpha, cuda, chkpt_dir='tmp/ppo'):
+    def __init__(self, alpha, cuda, chkpt_dir='source/PPO/tmp/ppo/'):
         super(CriticNetwork, self).__init__()
         self.conv1 = nn.Conv2d(1, 32, kernel_size=8, stride=4)
         self.conv2 = nn.Conv2d(32, 64, kernel_size=4, stride=2)
         self.conv3 = nn.Conv2d(64, 64, kernel_size=3, stride=1)
-        self.fc1 = nn.Linear(64*4*10, 512)
+        self.fc1 = nn.Linear(64*4*10, 512) # 64*56*104 for (480x864) and 64*4*10 for (60x108)
         self.fc2 = nn.Linear(512, 1)
 
-        self.checkpoint_file = os.path.join(chkpt_dir, 'critic_ppo')
+        self.checkpoint_file = os.path.join(chkpt_dir, 'critic_ppo.pt')
         self.optimizer = optim.Adam(self.parameters(), lr=alpha)
         if cuda:
             print("CriticNetwork esta usando CUDA...")

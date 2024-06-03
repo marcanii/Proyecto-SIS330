@@ -61,24 +61,24 @@ class Environment:
         return observation_, reward, done
 
     def calculateReward(self, masks):
-        # Convertir las máscaras a binarias
-        masks = masks.squeeze(0).detach().numpy()
-        binary_masks = np.zeros_like(masks)
-        print("BinaryMasks: ", binary_masks.shape)
-        binary_masks[masks >= 0.5] = 1
-        # Sumar los píxeles de cada máscara binaria
-        mask_sums = binary_masks.sum(axis=(1, 2))
-        print("Sum camino = ", mask_sums[0])
-        print("Sum obs = ", mask_sums[1])
+        done = False
+        # Contar los píxeles de cada tipo
+        background = np.sum(masks == 0)
+        obs = np.sum(masks == 1)
+        camino = np.sum(masks == 2)
+        print("Sum background = ", background)
+        print("Sum obs = ", obs)
+        print("Sum camino = ", camino)
         # Comparar las sumas y calcular la recompensa
-        if mask_sums[0] > mask_sums[1]:
+        if camino > obs:
             reward = 1
-        elif mask_sums[1] > mask_sums[0]:
-            reward = -5
+        elif obs > camino:
+            reward = -2
         else:
             reward = 0
-        
-        return reward, False
+
+        if camino < 2000.0:
+            done = True
 
 if __name__ == '__main__':
     env = Environment()

@@ -18,7 +18,7 @@ if __name__ == '__main__':
     agent = Agent(5, cuda=True)
     
     startTime = time.time()
-    img = cv2.imread("source/3.jpg")
+    img = cv2.imread("source/5.jpg")
     print("InputImage: ", img.shape)
     x_input = torch.from_numpy(np.array(img) / 255.0).float().permute(2, 0, 1).unsqueeze(0).to(device)
     x_input = x_input.clone().detach()
@@ -29,6 +29,8 @@ if __name__ == '__main__':
     seg_image = mask_img
     seg_image = seg_image.unsqueeze(0).unsqueeze(0).to(device).float()
     seg_image = maxPooling(seg_image)
+    r, d = agent.calculateReward(seg_image.squeeze(0).squeeze(0).cpu().numpy())
+    print("Reward: ", r, "Done: ", d)
     print("MaxPooling: ", seg_image.shape)
     inputImgPOO = seg_image
     print("InputImagePOO: ", inputImgPOO.shape, inputImgPOO.dtype, inputImgPOO.max(), inputImgPOO.min())
@@ -50,7 +52,7 @@ if __name__ == '__main__':
     inputImgPOO = inputImgPOO.squeeze(0).squeeze(0).cpu()
     axes[2].set_title("MaxPooling Image")
     axes[2].imshow(cv2.cvtColor(img, cv2.COLOR_BGR2RGB))
-    axes[2].imshow(inputImgPOO, alpha=1.0)
+    axes[2].imshow(inputImgPOO, alpha=0.5)
     axes[2].axis('off')
     #print(inputImgPOO[59])
     # # Ajustar el diseño
@@ -58,3 +60,4 @@ if __name__ == '__main__':
     # # Mostrar la figura
     plt.show()
     #plt.savefig('figura04.png', dpi=300, bbox_inches='tight')
+    # tiempo de ejecucion es de 0.40602922439575195

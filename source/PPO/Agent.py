@@ -6,7 +6,7 @@ import numpy as np
 
 class Agent:
     def __init__(self, n_actions, cuda, gamma=0.99, alpha=0.0003, gae_lambda=0.95,
-                policy_clip=0.2, batch_size=64, n_epochs=10):
+                policy_clip=0.2, batch_size=4, n_epochs=10):
         self.gamma = gamma
         self.policy_clip = policy_clip
         self.n_epochs = n_epochs
@@ -86,3 +86,25 @@ class Agent:
                 self.critic.optimizer.step()
                 
         self.memory.clear_memory()
+
+    def calculateReward(self, masks):
+        done = False
+        # Contar los píxeles de cada tipo
+        background = np.sum(masks == 0)
+        obs = np.sum(masks == 1)
+        camino = np.sum(masks == 2)
+        print("Sum background = ", background)
+        print("Sum obs = ", obs)
+        print("Sum camino = ", camino)
+        # Comparar las sumas y calcular la recompensa
+        if camino > obs:
+            reward = 1
+        elif obs > camino:
+            reward = -2
+        else:
+            reward = 0
+
+        if camino < 2000.0:
+            done = True
+
+        return reward, done

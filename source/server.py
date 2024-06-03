@@ -3,19 +3,17 @@ from PPO.Agent import Agent
 from UNet.UNet import UNetResnet
 from CAE.maxPooling import MaxPooling
 from flask import Flask, request, jsonify
-from Environment import Environment
 import cv2
 import numpy as np
-import time
 
-device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+device = "cuda" if torch.cuda.is_available() else "cpu"
 model_path = "source/UNet/models/UNetResNet_model_seg_v3_30.pt"
 modelSegmentation = UNetResnet()
 modelSegmentation.load_model(model_path)
 modelSegmentation.to(device)
-env = Environment()
 maxPooling = MaxPooling()
-batch_size = 5
+maxPooling.to(device)
+batch_size = 4
 n_epochs = 4
 alpha = 0.0003
 agent = Agent(n_actions=6, cuda=True, batch_size=batch_size, alpha=alpha, n_epochs=n_epochs)
@@ -36,14 +34,16 @@ def get_observation():
 
     image_data = image.read()
     img = cv2.imdecode(np.frombuffer(image_data, np.uint8), cv2.IMREAD_UNCHANGED)
-    img = torch.from_numpy(np.array(img) / 255.0).float().permute(2, 0, 1)
-    #print("ImageShape: ", img.shape, "ImageType: ", img.dtype, "ImageMax: ", img.max(), "ImageMin: ", img.min())
-    img = img.clone().detach().unsqueeze(0).to(device)
+
+    x_input = torch.from_numpy(np.array(img) / 255.0).float().permute(2, 0, 1).unsqueeze(0).to(device)
+    x_input = x_input.clone().detach()
     modelSegmentation.eval()
-    #with torch.no_grad():
-    output = modelSegmentation(img)[0]
-    mask_img = torch.argmax(output, axis=0) #type: ignore
+    with torch.no_grad():
+        output = modelSegmentation(x_input)[0]
+        mask_img = torch.argmax(output, axis=0) #type: ignore
+    mask_img = mask_img.unsqueeze(0).unsqueeze(0).to(device).float()
     img_poo = maxPooling(mask_img)
+    img_poo = img_poo.cpu().numpy()
     return jsonify({
         "image": img_poo.tolist()
     })
@@ -73,12 +73,29 @@ def remember():
     reward = request.json['reward']
     done = request.json['done']
     agent.remember(observation, action, prob, val, reward, done)
+    print("State: ", observation.shape, "Action: ", action, "Probs: ", prob, "Vals: ", val, "Reward: ", reward, "Done: ", done)
     return jsonify({'message': 'Datos almacenados correctamente'}), 200
 
 @app.route('/learn', methods=['POST'])
 def learn():
     agent.learn()
     return jsonify({'message': 'Modelo actualizado correctamente'}), 200
+
+@app.route('/saveModels', methods=['POST'])
+def save_models():
+    if request.json['save'] == True:
+        agent.save_models()
+        return jsonify({'message': 'Modelos guardados correctamente'}), 200
+    
+    return jsonify({'error': 'No se proporcionó el modelo a guardar'}), 400
+
+@app.route('/loadModels', methods=['POST'])
+def load_models():
+    if request.json['load'] == True:
+        agent.load_models()
+        return jsonify({'message': 'Modelos cargados correctamente'}), 200
+    
+    return jsonify({'error': 'No se proporcionó el modelo a cargar'}), 400
 
 if __name__ == "__main__":
     app.run(host='0.0.0.0', port=5000)
