@@ -43,7 +43,7 @@ def get_observation():
     mask_img = mask_img.unsqueeze(0).unsqueeze(0).to(device).float()
     img_poo = maxPooling(mask_img)
     img_poo = img_poo.squeeze(0).squeeze(0).cpu().numpy()
-    print("img_poo: ",img_poo.shape)
+    #print("img_poo: ",img_poo.shape)
     reward, done = agent.calculateReward(img_poo)
     return jsonify({
         "image": img_poo.tolist(),
