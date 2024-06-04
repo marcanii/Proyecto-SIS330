@@ -88,7 +88,6 @@ class Agent:
         self.memory.clear_memory()
 
     def calculateReward(self, masks):
-        done = False
         # Contar los píxeles de cada tipo
         background = np.sum(masks == 0)
         obs = np.sum(masks == 1)
@@ -101,9 +100,7 @@ class Agent:
             reward = 1
         elif obs > camino:
             reward = -2
-            done = True
         else:
             reward = 0
-            done = True
 
-        return reward, done
+        return reward

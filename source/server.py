@@ -44,11 +44,10 @@ def get_observation():
     img_poo = maxPooling(mask_img)
     img_poo = img_poo.squeeze(0).squeeze(0).cpu().numpy()
     print("img_poo: ",img_poo.shape)
-    reward, done = agent.calculateReward(img_poo)
+    reward = agent.calculateReward(img_poo)
     return jsonify({
         "image": img_poo.tolist(),
         "reward": reward,
-        "done": done
     })
 
 @app.route('/chooseAction', methods=['POST'])
