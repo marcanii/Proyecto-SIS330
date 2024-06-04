@@ -25,8 +25,9 @@ class Agent:
         response = requests.post(self.url_observation, files={'image': image_file})
         img = response.json()['image']
         reward = response.json()['reward']
+        done = response.json()['done']
         observation_ = np.array(img)
-        return observation_, reward
+        return observation_, reward, done
 
     def chooseAction(self, imgSeg):
         imgSeg = imgSeg.tolist()
@@ -46,10 +47,10 @@ class Agent:
     
     def step(self, action):
         self.takeAction(action)
-        observation_, reward = self.observation()
+        observation_, reward, done = self.observation()
         #reward, done = self.calculateReward(imgSeg)
         #observation_ = imgSeg
-        return observation_, reward
+        return observation_, reward, done
     
     def calculateReward(self, masks):
         done = False

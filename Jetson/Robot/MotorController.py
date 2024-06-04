@@ -37,77 +37,77 @@ class MotorController(SingletonConfigurable):
         self.right_back_motor.value = 0
                    
     def forward(self, speed=1.0):
-        #print("Avanzando...")
+        print("Avanzando...")
         self.left_front_motor.value = speed
         self.right_front_motor.value = speed
         self.left_back_motor.value = speed
         self.right_back_motor.value = speed
 
     def backward(self, speed=1.0):
-        #print("Retrocediendo...")
+        print("Retrocediendo...")
         self.left_front_motor.value = -speed
         self.right_front_motor.value = -speed
         self.left_back_motor.value = -speed
         self.right_back_motor.value = -speed
 
     def stop(self):
-        #print("Deteniendo motores...")
+        print("Deteniendo motores...")
         self.left_front_motor.value = 0
         self.right_front_motor.value = 0
         self.left_back_motor.value = 0
         self.right_back_motor.value = 0
 
     def left(self, speed=1.0):
-        #print("Izquierda...")
+        print("Izquierda...")
         self.left_front_motor.value = -speed
         self.right_front_motor.value = speed
         self.left_back_motor.value = speed
         self.right_back_motor.value = -speed
 
     def right(self, speed=1.0):
-        #print("Derecha...")
+        print("Derecha...")
         self.left_front_motor.value = speed
         self.right_front_motor.value = -speed
         self.left_back_motor.value = -speed
         self.right_back_motor.value = speed
 
     def diagonalForwardLeft(self, speed=1.0):
-        #print("Diagonal Adelante Izquierda...")
+        print("Diagonal Adelante Izquierda...")
         self.left_front_motor.value = 0
         self.right_front_motor.value = speed
         self.left_back_motor.value = speed
         self.right_back_motor.value = 0
 
     def diagonalForwardRight(self, speed=1.0):
-        #print("Diagonal Adelante Derecha...")
+        print("Diagonal Adelante Derecha...")
         self.left_front_motor.value = speed
         self.right_front_motor.value = 0
         self.left_back_motor.value = 0
         self.right_back_motor.value = speed
 
     def diagonalBackwardLeft(self, speed=1.0):
-        #print("Diagonal Atras Izquierda...")
+        print("Diagonal Atras Izquierda...")
         self.left_front_motor.value = -speed
         self.right_front_motor.value = 0
         self.left_back_motor.value = 0
         self.right_back_motor.value = -speed
 
     def diagonalBackwardRight(self, speed=1.0):
-        #print("Diagonal Atras Derecha...")
+        print("Diagonal Atras Derecha...")
         self.left_front_motor.value = 0
         self.right_front_motor.value = -speed
         self.left_back_motor.value = -speed
         self.right_back_motor.value = 0
     
     def turnLeft(self, speed=1.0):
-        #print("Girando Izquierda...")
+        print("Girando Izquierda...")
         self.left_front_motor.value = -speed
         self.right_front_motor.value = speed
         self.left_back_motor.value = -speed
         self.right_back_motor.value = speed
     
     def turnRight(self, speed=1.0):
-        #print("Girando Derecha...")
+        print("Girando Derecha...")
         self.left_front_motor.value = speed
         self.right_front_motor.value = -speed
         self.left_back_motor.value = speed

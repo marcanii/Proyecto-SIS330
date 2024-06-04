@@ -1,5 +1,4 @@
 import requests
-import threading
 import numpy as np
 import cv2
 from io import BytesIO
@@ -31,10 +30,11 @@ if response.status_code == 200:
     # Obtener los datos de la imagen segmentada de la respuesta JSON
     segmented_image_data = response.json()['image']
     reward = response.json()['reward']
+    done = response.json()['done']
     # Convertir la lista a una matriz NumPy
     img_ = np.array(segmented_image_data)
     print("ShapeImage:", img_.shape, img_.dtype)
-    print("Reward:", reward)
+    print("Reward:", reward, "Done:", done)
     img = img_.tolist()
     response = requests.post(url_chooseAction, json={'image': img})
     action = response.json()['action']
