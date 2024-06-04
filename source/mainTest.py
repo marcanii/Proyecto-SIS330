@@ -15,10 +15,14 @@ if __name__ == '__main__':
     modelSegmentation.to(device)
     maxPooling = MaxPooling()
     maxPooling.to(device)
-    agent = Agent(5, cuda=True)
+    batch_size = 4
+    n_epochs = 10
+    alpha = 0.0003
+    agent = Agent(n_actions=6, cuda=True, batch_size=batch_size, alpha=alpha, n_epochs=n_epochs)
+    #agent.load_models()
     
     startTime = time.time()
-    img = cv2.imread("source/5.jpg")
+    img = cv2.imread("source/6.jpg")
     print("InputImage: ", img.shape)
     x_input = torch.from_numpy(np.array(img) / 255.0).float().permute(2, 0, 1).unsqueeze(0).to(device)
     x_input = x_input.clone().detach()

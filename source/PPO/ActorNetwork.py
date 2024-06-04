@@ -10,17 +10,17 @@ class ActorNetwork(nn.Module):
         super(ActorNetwork, self).__init__()
         # Reemplaza la primera capa convolucional de ResNet con la capa personalizada
         #resnet50 = models.resnet18(weights='ResNet18_Weights.IMAGENET1K_V1')
-        resnet18 = models.resnet50(weights="ResNet50_Weights.IMAGENET1K_V1")
+        resnet18 = models.resnet18(weights="ResNet18_Weights.IMAGENET1K_V1")
         resnet18.conv1 = nn.Conv2d(1, 64, kernel_size=(7, 7), stride=(2, 2), padding=(3, 3), bias=False)
         self.resnet18 = nn.Sequential(*list(resnet18.children())[:-1])
         if freeze:
             for param in self.resnet18.parameters():
                 param.requires_grad=False
         # añadimos una nueva capa lineal para llevar a cabo la clasificación
-        self.fc = nn.Linear(2048, n_outputs)
+        self.fc = nn.Linear(512, n_outputs)
         self.softmax = nn.Softmax(dim=-1)
 
-        self.checkpoint_file = os.path.join(chkpt_dir, 'actor_ppo.pt')
+        self.checkpoint_file = os.path.join(chkpt_dir, 'actor_ppo18.pt')
         self.optimizer = optim.Adam(self.parameters(), lr=alpha)
 
         if torch.cuda.is_available():

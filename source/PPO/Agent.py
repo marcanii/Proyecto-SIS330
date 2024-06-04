@@ -88,33 +88,26 @@ class Agent:
         self.memory.clear_memory()
 
     def calculateReward(self, masks):
+        reward = 0
         done = False
-        total_area = np.sum(masks)
-
-        # Recompensas por área
-        camino = np.sum(masks == 2)
-        reward_camino_base = 0.2 * camino
-        if camino >= 0.25 * total_area:
-            reward_camino_porcentaje = 0.5
-        elif camino >= 0.5 * total_area:
-            reward_camino_porcentaje = 1.0
-        else:
-            reward_camino_porcentaje = 0
-
+        # Contar los píxeles de cada tipo
         obs = np.sum(masks == 1)
-        reward_obs = -0.1 * obs
-        background = np.sum(masks == 0)
-        reward_background = 0
+        camino = np.sum(masks == 2)
+        print("Sum obs = ", obs)
+        print("Sum camino = ", camino)
 
-        # Recompensa por finalización
-        if obs > camino:
+        if camino > 1.2 * obs:
+            reward += 2
+        elif camino > obs:
+            reward += 1
+        elif obs > 1.6 * camino:
             done = True
-            reward = -2
-        elif camino >= total_area:
+            reward += -3
+        elif obs > camino:
             done = True
-            reward = 1
-
-        # Cálculo de la recompensa final
-        reward = reward_camino_base + reward_camino_porcentaje + reward_obs + reward_background
+            reward += -1
+        else:
+            done = True
+            reward = 0
 
         return reward, done

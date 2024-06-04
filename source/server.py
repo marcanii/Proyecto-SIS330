@@ -14,7 +14,7 @@ modelSegmentation.to(device)
 maxPooling = MaxPooling()
 maxPooling.to(device)
 batch_size = 4
-n_epochs = 4
+n_epochs = 10
 alpha = 0.0003
 agent = Agent(n_actions=6, cuda=True, batch_size=batch_size, alpha=alpha, n_epochs=n_epochs)
 
