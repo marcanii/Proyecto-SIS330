@@ -101,10 +101,9 @@ class Agent:
             reward = 1
         elif obs > camino:
             reward = -2
+            done = True
         else:
             reward = 0
-
-        if camino < 2000.0:
             done = True
 
         return reward, done

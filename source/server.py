@@ -18,7 +18,6 @@ n_epochs = 4
 alpha = 0.0003
 agent = Agent(n_actions=6, cuda=True, batch_size=batch_size, alpha=alpha, n_epochs=n_epochs)
 
-
 app = Flask(__name__)
 
 @app.route('/', methods=['GET'])
@@ -43,9 +42,13 @@ def get_observation():
         mask_img = torch.argmax(output, axis=0) #type: ignore
     mask_img = mask_img.unsqueeze(0).unsqueeze(0).to(device).float()
     img_poo = maxPooling(mask_img)
-    img_poo = img_poo.cpu().numpy()
+    img_poo = img_poo.squeeze(0).squeeze(0).cpu().numpy()
+    print("img_poo: ",img_poo.shape)
+    reward, done = agent.calculateReward(img_poo)
     return jsonify({
-        "image": img_poo.tolist()
+        "image": img_poo.tolist(),
+        "reward": reward,
+        "done": done
     })
 
 @app.route('/chooseAction', methods=['POST'])
@@ -53,7 +56,7 @@ def choose_action():
     if 'image' not in request.json:
         return jsonify({'error': 'No se proporcionó ninguna imagen'}), 400
     img = np.array(request.json['image'])
-    img_poo = torch.from_numpy(img).to(torch.float32)
+    img_poo = torch.from_numpy(img).unsqueeze(0).unsqueeze(0).to(torch.float32)
     action, probs, value = agent.choose_action(img_poo)
     return jsonify({
         "action": action,
