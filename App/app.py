@@ -5,7 +5,7 @@ import numpy as np
 from PIL import Image, ImageTk
 
 cliente_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-cliente_socket.connect(("192.168.0.5", 8002))
+cliente_socket.connect(("192.168.18.75", 8002))
 
 def getVideo(canvas):
     while True:
