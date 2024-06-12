@@ -58,7 +58,7 @@ class VideoStreamer:
         return self.frame
 
 if __name__ == "__main__":
-    HOST = "192.168.0.5"
+    HOST = "192.168.0.12"
     PORT = 8002
 
     video_streamer = VideoStreamer(HOST, PORT)
