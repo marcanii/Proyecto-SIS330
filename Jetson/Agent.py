@@ -80,20 +80,21 @@ class Agent:
 
 
     def takeAction(self, action):
+        speed = 0.5
         if action == 0:
             self.motorController.stop()
         elif action == 1:
-            self.motorController.backward(speed=0.4)
+            self.motorController.backward(speed=speed)
         elif action == 2:
-            self.motorController.forward(speed=0.4)
+            self.motorController.forward(speed=speed)
         elif action == 3:
-            self.motorController.left(speed=0.4)
+            self.motorController.left(speed=speed)
         elif action == 4:
-            self.motorController.right(speed=0.4)
+            self.motorController.right(speed=speed)
         elif action == 5:
-            self.motorController.turnLeft(speed=0.4)
+            self.motorController.turnLeft(speed=speed)
         elif action == 6:
-            self.motorController.turnRight(speed=0.4)
+            self.motorController.turnRight(speed=speed)
 
     def __del__(self):
         self.motorController.stop()
