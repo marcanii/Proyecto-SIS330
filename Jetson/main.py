@@ -1,67 +1,92 @@
-import requests
-import numpy as np
+import socket
 import cv2
-from io import BytesIO
-import time
-import matplotlib
-matplotlib.use('Agg')
-import matplotlib.pyplot as plt
-from Agent import Agent
-from Camera import Camera
+import numpy as np
+import threading
+from Robot.MotorController import MotorController
 
-url_observation = "https://dhbqf30k-5000.brs.devtunnels.ms/observation"
-url_chooseAction = "https://dhbqf30k-5000.brs.devtunnels.ms/chooseAction"
-camera = Camera()
-#agent = Agent()
+# Dirección IP y puerto del servidor
+host_ip = '192.168.0.7'  # Dirección IP de la Jetson Nano
+port = 9999
 
-image = camera.getImage()
-#image = cv2.imread("1.jpg")
-#time.sleep(2)
-#image, _, _ = agent.observation()
-# Codificar la imagen como bytes
-_, image_bytes = cv2.imencode('.jpg', image)
-image_file = BytesIO(image_bytes)
+# Variables globales para compartir datos entre hilos
+instruction = None
+stop_threads = False
 
-# Enviar la solicitud POST con la imagen
-response = requests.post(url_observation, files={'image': image_file})
+# inicializando controladores de motor
+motorController = MotorController()
+motorController.setupMotors()
 
-if response.status_code == 200:
-    inicio = time.time()
-    # Obtener los datos de la imagen segmentada de la respuesta JSON
-    segmented_image_data = response.json()['image']
-    reward = response.json()['reward']
-    done = response.json()['done']
-    # Convertir la lista a una matriz NumPy
-    img_ = np.array(segmented_image_data)
-    print("ShapeImage:", img_.shape, img_.dtype)
-    print("Reward:", reward, "Done:", done)
-    img = img_.tolist()
-    response = requests.post(url_chooseAction, json={'image': img})
-    action = response.json()['action']
-    probs = response.json()['probs']
-    value = response.json()['value']
-    print("Time:", time.time()-inicio)
-    print("Action:", action, "Probs:", probs, "Value:", value)
-    
-else:
-    print(f'Error: {response.status_code} - {response.text}')
+# Función para manejar la transmisión de video
+def video_transmitter(client_socket):
+    gst_str = (
+        "nvarguscamerasrc ! "
+        "nvvidconv flip-method=0 ! "
+        "video/x-raw, width=(int)864, height=(int)480, format=(string)BGRx ! "
+        "videoconvert ! "
+        "appsink"
+    )
 
-fig, axes = plt.subplots(1, 2, figsize=(16, 4))
-axes[0].imshow(cv2.cvtColor(image, cv2.COLOR_BGR2RGB))
-axes[0].set_title("Input Image")
-axes[0].axis('off')
+    vid = cv2.VideoCapture(gst_str, cv2.CAP_GSTREAMER)
 
-axes[1].set_title("Segmentation Image")
-axes[1].imshow(cv2.cvtColor(image, cv2.COLOR_BGR2RGB))
-axes[1].imshow(img_, alpha=1.0)
-axes[1].axis('off')
+    while vid.isOpened() and not stop_threads:
+        ret, frame = vid.read()
+        encoded, buffer = cv2.imencode('.jpg', frame)
+        data = np.array(buffer)
+        string_data = data.tostring()
+        client_socket.sendall((str(len(string_data))).encode().ljust(512) + string_data)
 
-print(img_.max(), img_.min())
-#print("Tiempo espera...")
-#time.sleep(10)
-# # Ajustar el diseño
-plt.tight_layout()
-# # Mostrar la figura
-plt.savefig('figura09.png', dpi=300, bbox_inches='tight')
-print("Done")
-# tiempo de ejecucion 1.5405511856079102
+    vid.release()
+
+def handle_instruction(instruction):
+    speed = 0.5
+    if instruction == 0:
+        motorController.stop()
+    elif instruction == 1:
+        motorController.forward(speed)
+    elif instruction == 2:
+        motorController.backward(speed)
+    elif instruction == 3:
+        motorController.left(speed)
+    elif instruction == 4:
+        motorController.right(speed)
+    elif instruction == 5:
+        motorController.turnLeft(speed)
+    elif instruction == 6:
+        motorController.turnRight(speed)
+
+# Función para manejar las instrucciones de control
+def control_handler(client_socket):
+    global instruction
+
+    while not stop_threads:
+        data = client_socket.recv(512)
+        if data:
+            new_instruction = int(data.decode())
+            if new_instruction != instruction:
+                instruction = new_instruction
+                handle_instruction(instruction)
+
+# Configurar el servidor
+server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+socket_address = (host_ip, port)
+server_socket.bind(socket_address)
+print(f"Servidor iniciado en {host_ip}:{port}")
+server_socket.listen(5)
+print("Esperando conexión...")
+
+client_socket, addr = server_socket.accept()
+print(f"Conexión establecida con {addr}")
+
+if client_socket:
+    # Iniciar los hilos
+    video_thread = threading.Thread(target=video_transmitter, args=(client_socket,))
+    control_thread = threading.Thread(target=control_handler, args=(client_socket,))
+
+    video_thread.start()
+    control_thread.start()
+
+    # Esperar a que los hilos terminen
+    video_thread.join()
+    control_thread.join()
+
+client_socket.close()
