@@ -1,13 +1,15 @@
 import tkinter as tk
+from tkinter import ttk
 import socket
 import cv2
 import numpy as np
 from PIL import Image, ImageTk
 
+# Conectar al servidor
 cliente_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-cliente_socket.connect(("192.168.18.75", 8002))
+cliente_socket.connect(("192.168.0.12", 8002))
 
-def getVideo(canvas):
+def getVideo(canvas, image_label):
     while True:
         # Recibir el tamaño del frame
         data = cliente_socket.recv(16)
@@ -30,57 +32,131 @@ def getVideo(canvas):
         photo = ImageTk.PhotoImage(image=image)
 
         if canvas.winfo_exists():
-            canvas.delete("all")
-            canvas.create_image(0, 0, anchor=tk.NW, image=photo)
-            canvas.pack(fill=tk.BOTH, expand=tk.YES)
+            image_label.configure(image=photo)
+            image_label.image = photo
             root.update()
+
+def set_mode():
+    if mode_var.get() == "controlled":
+        enable_controls()
+    else:
+        disable_controls()
+
+def enable_controls():
+    forward_button.config(state=tk.NORMAL)
+    left_button.config(state=tk.NORMAL)
+    right_button.config(state=tk.NORMAL)
+    backward_button.config(state=tk.NORMAL)
+    turn_left_button.config(state=tk.NORMAL)
+    turn_right_button.config(state=tk.NORMAL)
+    stop_button.config(state=tk.NORMAL)
+
+def disable_controls():
+    forward_button.config(state=tk.DISABLED)
+    left_button.config(state=tk.DISABLED)
+    right_button.config(state=tk.DISABLED)
+    backward_button.config(state=tk.DISABLED)
+    turn_left_button.config(state=tk.DISABLED)
+    turn_right_button.config(state=tk.DISABLED)
+    stop_button.config(state=tk.DISABLED)
+
+def move_forward():
+    print("Adelante")
+
+def move_backward():
+    print("Atrás")
+
+def move_left():
+    print("Izquierda")
+
+def move_right():
+    print("Derecha")
+
+def turn_left():
+    print("Girar a la izquierda")
+
+def turn_right():
+    print("Girar a la derecha")
+
+def stop_robot():
+    print("Detener robot")
+
+def close_app():
+    cliente_socket.close()
+    root.destroy()
 
 root = tk.Tk()
 root.title("Controlador del Robot")
 
-cameraFrame = tk.Frame(root)
-cameraFrame.pack(side=tk.LEFT, padx=10, pady=10)
-title = tk.Label(cameraFrame, text="Cámara del Robot")
-title.pack()
-canvas = tk.Canvas(cameraFrame, width=864, height=480)
+# Estilos
+style = ttk.Style()
+style.configure("TFrame", background="lightgray")
+style.configure("TButton", padding=6)
+style.configure("TRadiobutton", background="lightgray")
 
-controlFrame = tk.Frame(root)
-controlFrame.pack(side=tk.LEFT, padx=10, pady=10)
-title = tk.Label(controlFrame, text="Controles del Robot")
-title.pack()
+# Frame de la cámara
+camera_frame = ttk.Frame(root, padding="10 10 10 10")
+camera_frame.grid(column=0, row=0, sticky=(tk.N, tk.W, tk.E, tk.S))
+root.columnconfigure(0, weight=1)
+root.rowconfigure(0, weight=1)
+
+camera_title = ttk.Label(camera_frame, text="Cámara del Robot", font=("Helvetica", 16))
+camera_title.grid(column=0, row=0, pady=10)
+
+canvas = tk.Canvas(camera_frame, width=864, height=480)
+canvas.grid(column=0, row=1)
+
+image_label = ttk.Label(camera_frame)
+image_label.grid(column=0, row=1)
+
+# Frame de controles
+control_frame = ttk.Frame(root, padding="10 10 10 10")
+control_frame.grid(column=1, row=0, sticky=(tk.N, tk.W, tk.E, tk.S))
+root.columnconfigure(1, weight=1)
+root.rowconfigure(0, weight=1)
+
+control_title = ttk.Label(control_frame, text="Controles del Robot", font=("Helvetica", 16))
+control_title.grid(column=0, row=0, columnspan=2, pady=10)
 
 mode_var = tk.StringVar()
 mode_var.set("autonomous")  # Modo autónomo por defecto
 
-mode_label = tk.Label(controlFrame, text="Modo:")
-mode_label.pack()
+mode_label = ttk.Label(control_frame, text="Modo:")
+mode_label.grid(column=0, row=1, sticky=tk.W, pady=5)
 
-autonomous_radio = tk.Radiobutton(controlFrame, text="Autónomo", variable=mode_var, value="autonomous")
-autonomous_radio.pack()
+autonomous_radio = ttk.Radiobutton(control_frame, text="Autónomo", variable=mode_var, value="autonomous", command=set_mode)
+autonomous_radio.grid(column=0, row=2, sticky=tk.W)
 
-controlled_radio = tk.Radiobutton(controlFrame, text="Controlado", variable=mode_var, value="controlled")
-controlled_radio.pack()
+controlled_radio = ttk.Radiobutton(control_frame, text="Controlado", variable=mode_var, value="controlled", command=set_mode)
+controlled_radio.grid(column=1, row=2, sticky=tk.W)
 
 # Botones de control
-forward_button = tk.Button(controlFrame, text="Adelante")
-forward_button.pack(side=tk.TOP, pady=10)
+forward_button = ttk.Button(control_frame, text="Adelante", command=move_forward, state=tk.DISABLED)
+forward_button.grid(column=0, row=3, columnspan=2, pady=5)
 
-backward_button = tk.Button(controlFrame, text="Atrás")
-backward_button.pack(side=tk.BOTTOM, pady=10)
+left_button = ttk.Button(control_frame, text="Izquierda", command=move_left, state=tk.DISABLED)
+left_button.grid(column=0, row=4, pady=5, sticky=tk.W)
 
-left_button = tk.Button(controlFrame, text="Izquierda")
-left_button.pack(side=tk.LEFT, padx=3)
+right_button = ttk.Button(control_frame, text="Derecha", command=move_right, state=tk.DISABLED)
+right_button.grid(column=1, row=4, pady=5, sticky=tk.E)
 
-right_button = tk.Button(controlFrame, text="Derecha")
-right_button.pack(side=tk.RIGHT, padx=3)
+backward_button = ttk.Button(control_frame, text="Atrás", command=move_backward, state=tk.DISABLED)
+backward_button.grid(column=0, row=5, columnspan=2, pady=5)
 
-turn_left_button = tk.Button(controlFrame, text="Girar a la izquierda")
-turn_left_button.pack(side=tk.LEFT, padx=3)
+turn_left_button = ttk.Button(control_frame, text="Girar a la izquierda", command=turn_left, state=tk.DISABLED)
+turn_left_button.grid(column=0, row=6, pady=5, sticky=tk.W)
 
-turn_right_button = tk.Button(controlFrame, text="Girar a la derecha")
-turn_right_button.pack(side=tk.RIGHT, padx=3)
+turn_right_button = ttk.Button(control_frame, text="Girar a la derecha", command=turn_right, state=tk.DISABLED)
+turn_right_button.grid(column=1, row=6, pady=5, sticky=tk.E)
 
+# Botones adicionales
+stop_button = ttk.Button(control_frame, text="Detener", command=stop_robot, state=tk.DISABLED)
+stop_button.grid(column=0, row=7, columnspan=2, pady=10)
 
-getVideo(canvas)
+close_button = ttk.Button(control_frame, text="Cerrar", command=close_app)
+close_button.grid(column=0, row=8, columnspan=2, pady=10)
+
+# Iniciar la captura de video
+getVideo(canvas, image_label)
 
 root.mainloop()
