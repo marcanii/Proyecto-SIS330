@@ -1,18 +1,22 @@
 import tkinter as tk
 from tkinter import ttk
+import tkinter as tk
+from tkinter import ttk
 import socket
 import cv2
 import numpy as np
 from PIL import Image, ImageTk
+import threading
 
 # Conectar al servidor
 cliente_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-cliente_socket.connect(("192.168.0.12", 8002))
+cliente_socket.connect(("192.168.0.7", 9999))
+accion = None
 
 def getVideo(canvas, image_label):
     while True:
         # Recibir el tamaño del frame
-        data = cliente_socket.recv(16)
+        data = cliente_socket.recv(512)
         if not data:
             break
         length = int(data)
@@ -35,6 +39,34 @@ def getVideo(canvas, image_label):
             image_label.configure(image=photo)
             image_label.image = photo
             root.update()
+
+def send_instruction(instruction):
+    cliente_socket.send(str(instruction).encode())
+
+def move_forward():
+    send_instruction(1)
+
+def move_backward():
+    send_instruction(2)
+
+def move_left():
+    send_instruction(3)
+
+def move_right():
+    send_instruction(4)
+
+def turn_left():
+    send_instruction(5)
+
+def turn_right():
+    send_instruction(6)
+
+def stop_robot():
+    send_instruction(0)
+
+def close_app():
+    cliente_socket.close()
+    root.destroy()
 
 def set_mode():
     if mode_var.get() == "controlled":
@@ -59,31 +91,6 @@ def disable_controls():
     turn_left_button.config(state=tk.DISABLED)
     turn_right_button.config(state=tk.DISABLED)
     stop_button.config(state=tk.DISABLED)
-
-def move_forward():
-    print("Adelante")
-
-def move_backward():
-    print("Atrás")
-
-def move_left():
-    print("Izquierda")
-
-def move_right():
-    print("Derecha")
-
-def turn_left():
-    print("Girar a la izquierda")
-
-def turn_right():
-    print("Girar a la derecha")
-
-def stop_robot():
-    print("Detener robot")
-
-def close_app():
-    cliente_socket.close()
-    root.destroy()
 
 root = tk.Tk()
 root.title("Controlador del Robot")
@@ -119,7 +126,7 @@ control_title = ttk.Label(control_frame, text="Controles del Robot", font=("Helv
 control_title.grid(column=0, row=0, columnspan=2, pady=10)
 
 mode_var = tk.StringVar()
-mode_var.set("autonomous")  # Modo autónomo por defecto
+mode_var.set("controlled")  # Modo autónomo por defecto
 
 mode_label = ttk.Label(control_frame, text="Modo:")
 mode_label.grid(column=0, row=1, sticky=tk.W, pady=5)
@@ -131,32 +138,36 @@ controlled_radio = ttk.Radiobutton(control_frame, text="Controlado", variable=mo
 controlled_radio.grid(column=1, row=2, sticky=tk.W)
 
 # Botones de control
-forward_button = ttk.Button(control_frame, text="Adelante", command=move_forward, state=tk.DISABLED)
+forward_button = ttk.Button(control_frame, text="Adelante", command=move_forward)
 forward_button.grid(column=0, row=3, columnspan=2, pady=5)
 
-left_button = ttk.Button(control_frame, text="Izquierda", command=move_left, state=tk.DISABLED)
+left_button = ttk.Button(control_frame, text="Izquierda", command=move_left)
 left_button.grid(column=0, row=4, pady=5, sticky=tk.W)
 
-right_button = ttk.Button(control_frame, text="Derecha", command=move_right, state=tk.DISABLED)
+right_button = ttk.Button(control_frame, text="Derecha", command=move_right)
 right_button.grid(column=1, row=4, pady=5, sticky=tk.E)
 
-backward_button = ttk.Button(control_frame, text="Atrás", command=move_backward, state=tk.DISABLED)
+backward_button = ttk.Button(control_frame, text="Atrás", command=move_backward)
 backward_button.grid(column=0, row=5, columnspan=2, pady=5)
 
-turn_left_button = ttk.Button(control_frame, text="Girar a la izquierda", command=turn_left, state=tk.DISABLED)
+turn_left_button = ttk.Button(control_frame, text="Girar a la izquierda", command=turn_left)
 turn_left_button.grid(column=0, row=6, pady=5, sticky=tk.W)
 
-turn_right_button = ttk.Button(control_frame, text="Girar a la derecha", command=turn_right, state=tk.DISABLED)
+turn_right_button = ttk.Button(control_frame, text="Girar a la derecha", command=turn_right)
 turn_right_button.grid(column=1, row=6, pady=5, sticky=tk.E)
 
 # Botones adicionales
-stop_button = ttk.Button(control_frame, text="Detener", command=stop_robot, state=tk.DISABLED)
+stop_button = ttk.Button(control_frame, text="Detener", command=stop_robot)
 stop_button.grid(column=0, row=7, columnspan=2, pady=10)
 
 close_button = ttk.Button(control_frame, text="Cerrar", command=close_app)
 close_button.grid(column=0, row=8, columnspan=2, pady=10)
 
 # Iniciar la captura de video
-getVideo(canvas, image_label)
+#getVideo(canvas, image_label)
+
+# Iniciar el hilo para la captura de video
+video_thread = threading.Thread(target=getVideo, args=(canvas, image_label))
+video_thread.start()
 
 root.mainloop()
