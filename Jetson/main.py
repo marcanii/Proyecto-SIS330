@@ -3,6 +3,7 @@ import cv2
 import numpy as np
 import threading
 from Robot.MotorController import MotorController
+from Agent import Agent
 
 # Dirección IP y puerto del servidor
 host_ip = '192.168.0.7'  # Dirección IP de la Jetson Nano
@@ -12,7 +13,9 @@ port = 9999
 instruction = None
 stop_threads = False
 
-# inicializando controladores de motor
+# inicializando agente
+#agente = Agent()
+#agente.loadModels()
 motorController = MotorController()
 motorController.setupMotors()
 
@@ -41,18 +44,25 @@ def handle_instruction(instruction):
     speed = 0.5
     if instruction == 0:
         motorController.stop()
+        #agente.takeAction(instruction)
     elif instruction == 1:
         motorController.forward(speed)
+        #agente.takeAction(instruction)
     elif instruction == 2:
         motorController.backward(speed)
+        #agente.takeAction(instruction)
     elif instruction == 3:
         motorController.left(speed)
+        #agente.takeAction(instruction)
     elif instruction == 4:
         motorController.right(speed)
+        #agente.takeAction(instruction)
     elif instruction == 5:
         motorController.turnLeft(speed)
+        #agente.takeAction(instruction)
     elif instruction == 6:
         motorController.turnRight(speed)
+        #agente.takeAction(instruction)
 
 # Función para manejar las instrucciones de control
 def control_handler(client_socket):
