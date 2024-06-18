@@ -109,6 +109,7 @@ class Agent:
     def loadModels(self):
         response = requests.post(self.url_loadModels, json={'load': True})
         if response.status_code == 200:
+            print("Modelos cargados...")
             return True
         
         return False
