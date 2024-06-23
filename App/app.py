@@ -71,6 +71,7 @@ def close_app():
 def set_mode():
     if mode_var.get() == "controlled":
         enable_controls()
+        send_instruction(11)
     else:
         disable_controls()
         send_instruction(10)
