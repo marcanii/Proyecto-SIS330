@@ -45,7 +45,7 @@ class CriticNetwork(nn.Module):
         self.fc2 = nn.Linear(512, 1)
 
         self.checkpoint_file = os.path.join(chkpt_dir, 'critic_ppo.pt')
-        self.optimizer = optim.Adam(self.parameters(), lr=alpha*10)
+        self.optimizer = optim.Adam(self.parameters(), lr=alpha)
         if cuda:
             print("CriticNetwork esta usando CUDA...")
             self.device = "cuda:0"

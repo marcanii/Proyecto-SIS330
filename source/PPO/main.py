@@ -1,4 +1,4 @@
-from ActorNetwork import ActorNetwork, DenseNetActor
+from ActorNetwork import ActorNetwork, DenseNetActor121, DenseNetActor201
 import numpy as np
 import os
 import torch
@@ -13,7 +13,7 @@ class Dataset(torch.utils.data.Dataset):
 
   def __getitem__(self, ix):
     img = X[ix]
-    return torch.from_numpy(img).float(), torch.tensor(self.y[ix]).long()
+    return torch.from_numpy(img / 2.0).float(), torch.tensor(self.y[ix]).long()
 
 def laod_dataset(data_dir):
     X = []
@@ -61,7 +61,7 @@ def fit(model, dataloader, epochs=10, lr=0.0003, device='cpu'):
 if __name__ == '__main__':
     device = "cuda" if torch.cuda.is_available() else "cpu"
     #classes = ['parar', 'atras', 'adelante', 'izquierda', 'derecha', 'giroIzq', 'giroDer']
-    actor = DenseNetActor(7, 0.0003)
+    actor = DenseNetActor201(7, 0.0003, True)
     #actor.load_checkpoint()
     data_dir = 'source/PPO/dataset'
     X, y = laod_dataset(data_dir)
@@ -74,6 +74,6 @@ if __name__ == '__main__':
         'train': torch.utils.data.DataLoader(dataset['train'], batch_size=8, shuffle=True, pin_memory=True),
     }
     #imgs, labels = next(iter(dataloader['train']))
-    #print(imgs.shape)
+    #print(imgs.shape, imgs.max(), imgs.min())
     #print(dataset['train'][2])
-    fit(actor, dataloader, epochs=100, lr=0.0003, device=device)
+    fit(actor, dataloader, epochs=150, lr=0.0003, device=device)

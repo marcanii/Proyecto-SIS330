@@ -1,9 +1,9 @@
-from PPO.ActorNetwork import ActorNetwork, DenseNetActor
+from PPO.ActorNetwork import ActorNetwork, DenseNetActor121, DenseNetActor201
 from PPO.CriticNetwork import CriticNetwork
 from PPO.PPOMemory import PPOMemory
 import torch
 import numpy as np
-from scipy.ndimage import distance_transform_cdt
+from PPO.AdvancedRewardCalculator import AdvancedRewardCalculator
 
 class Agent:
     def __init__(self, n_actions, cuda, gamma=0.99, alpha=0.0003, gae_lambda=0.95,
@@ -14,9 +14,10 @@ class Agent:
         self.gae_lambda = gae_lambda
         self.previous_reward = 0
 
-        self.actor = DenseNetActor(n_actions, alpha, cuda)
+        self.actor = DenseNetActor201(n_actions, alpha, cuda)
         self.critic = CriticNetwork(alpha, cuda)
         self.memory = PPOMemory(batch_size)
+        self.advancedRewardCalculator = AdvancedRewardCalculator()
     
     def remember(self, state, action, probs, vals, reward, done):
         self.memory.store_memory(state, action, probs, vals, reward, done)
@@ -90,38 +91,40 @@ class Agent:
         self.memory.clear_memory()
 
     def calculateReward(self, masks):
-        done = False
-        total_area = np.sum(masks)
-        camino = np.sum(masks == 2)
-        obs = np.sum(masks == 1)
-        #print("Camino: ", camino, "Obs: ", obs, "TotalArea: ", total_area)
-        # Recompensa base por área de camino
-        reward_camino_base = 0.25 * camino
+        reward, done = self.advancedRewardCalculator.calculate_reward(masks)
+        return reward, done
+        # done = False
+        # total_area = np.sum(masks)
+        # camino = np.sum(masks == 2)
+        # obs = np.sum(masks == 1)
+        # #print("Camino: ", camino, "Obs: ", obs, "TotalArea: ", total_area)
+        # # Recompensa base por área de camino
+        # reward_camino_base = 0.25 * camino
 
-        # Recompensa adicional por porcentaje de área de camino
-        area_camino_porcentaje = camino / total_area if total_area > 0 else 0
-        #print(area_camino_porcentaje,"=", camino, "/", total_area)
-        if area_camino_porcentaje >= 0.5:
-            reward_camino_porcentaje = 0.75
-        elif area_camino_porcentaje >= 0.4:
-            reward_camino_porcentaje = 0.60
-        elif area_camino_porcentaje >= 0.3:
-            reward_camino_porcentaje = 0.45
-        elif area_camino_porcentaje >= 0.2:
-            reward_camino_porcentaje = 0.30
-        else:
-            reward_camino_porcentaje = 0
+        # # Recompensa adicional por porcentaje de área de camino
+        # area_camino_porcentaje = camino / total_area if total_area > 0 else 0
+        # #print(area_camino_porcentaje,"=", camino, "/", total_area)
+        # if area_camino_porcentaje >= 0.5:
+        #     reward_camino_porcentaje = 0.75
+        # elif area_camino_porcentaje >= 0.4:
+        #     reward_camino_porcentaje = 0.60
+        # elif area_camino_porcentaje >= 0.3:
+        #     reward_camino_porcentaje = 0.45
+        # elif area_camino_porcentaje >= 0.2:
+        #     reward_camino_porcentaje = 0.30
+        # else:
+        #     reward_camino_porcentaje = 0
 
-        # Penalización por obstáculos
-        reward_obs = -0.1 * obs
-        #print("RewardObs: ", reward_obs)
-        # Recompensa por finalización
-        if obs > camino:
-            done = True
-        elif camino >= total_area:
-            done = True
-            reward = 10
+        # # Penalización por obstáculos
+        # reward_obs = -0.1 * obs
+        # #print("RewardObs: ", reward_obs)
+        # # Recompensa por finalización
+        # if obs > camino:
+        #     done = True
+        # elif camino >= total_area:
+        #     done = True
+        #     reward = 10
 
-        reward = reward_camino_base * reward_camino_porcentaje + reward_obs
+        # reward = reward_camino_base * reward_camino_porcentaje + reward_obs
 
-        return int(reward), done
+        # return int(reward), done

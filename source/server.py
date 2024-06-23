@@ -48,7 +48,7 @@ def get_observation():
     reward, done = agent.calculateReward(img_poo)
     return jsonify({
         "image": img_poo.tolist(),
-        "reward": reward,
+        "reward": reward, # 1.3644601906913343 1.3644601906913343 0.9433233307163252
         "done": done
     })
 
@@ -57,7 +57,7 @@ def choose_action():
     if 'image' not in request.json:
         return jsonify({'error': 'No se proporcionó ninguna imagen'}), 400
     img = np.array(request.json['image'])
-    img_poo = torch.from_numpy(img).unsqueeze(0).unsqueeze(0).to(torch.float32)
+    img_poo = torch.from_numpy(img / 2.0).unsqueeze(0).unsqueeze(0).to(torch.float32)
     action, probs, value = agent.choose_action(img_poo)
     return jsonify({
         "action": action,
