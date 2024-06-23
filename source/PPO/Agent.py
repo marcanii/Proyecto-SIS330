@@ -1,4 +1,4 @@
-from PPO.ActorNetwork import ActorNetwork
+from PPO.ActorNetwork import ActorNetwork, DenseNetActor
 from PPO.CriticNetwork import CriticNetwork
 from PPO.PPOMemory import PPOMemory
 import torch
@@ -14,7 +14,7 @@ class Agent:
         self.gae_lambda = gae_lambda
         self.previous_reward = 0
 
-        self.actor = ActorNetwork(n_actions, alpha, cuda)
+        self.actor = DenseNetActor(n_actions, alpha, cuda)
         self.critic = CriticNetwork(alpha, cuda)
         self.memory = PPOMemory(batch_size)
     

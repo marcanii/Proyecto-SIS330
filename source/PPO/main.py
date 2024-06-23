@@ -1,4 +1,4 @@
-from ActorNetwork import ActorNetwork, MyModelActorCNN
+from ActorNetwork import ActorNetwork, DenseNetActor
 import numpy as np
 import os
 import torch
@@ -61,7 +61,7 @@ def fit(model, dataloader, epochs=10, lr=0.0003, device='cpu'):
 if __name__ == '__main__':
     device = "cuda" if torch.cuda.is_available() else "cpu"
     #classes = ['parar', 'atras', 'adelante', 'izquierda', 'derecha', 'giroIzq', 'giroDer']
-    actor = ActorNetwork(7, 0.0003, False, False)
+    actor = DenseNetActor(7, 0.0003)
     #actor.load_checkpoint()
     data_dir = 'source/PPO/dataset'
     X, y = laod_dataset(data_dir)
