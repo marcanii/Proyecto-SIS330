@@ -6,18 +6,15 @@ import time
 import matplotlib
 matplotlib.use('Agg')
 import matplotlib.pyplot as plt
-from Agent import Agent
 from Camera import Camera
 
+classes = ['parar', 'atras', 'adelante', 'izquierda', 'derecha', 'giroIzq', 'giroDer']
 url_observation = "https://dhbqf30k-5000.brs.devtunnels.ms/observation"
 url_chooseAction = "https://dhbqf30k-5000.brs.devtunnels.ms/chooseAction"
 camera = Camera()
-#agent = Agent()
 
 image = camera.getImage()
 #image = cv2.imread("1.jpg")
-#time.sleep(2)
-#image, _, _ = agent.observation()
 # Codificar la imagen como bytes
 _, image_bytes = cv2.imencode('.jpg', image)
 image_file = BytesIO(image_bytes)
@@ -41,7 +38,7 @@ if response.status_code == 200:
     probs = response.json()['probs']
     value = response.json()['value']
     print("Time:", time.time()-inicio)
-    print("Action:", action, "Probs:", probs, "Value:", value)
+    print("Action:", classes[action], "Probs:", probs, "Value:", value)
     
 else:
     print(f'Error: {response.status_code} - {response.text}')
@@ -52,16 +49,13 @@ axes[0].set_title("Input Image")
 axes[0].axis('off')
 
 axes[1].set_title("Segmentation Image")
-axes[1].imshow(cv2.cvtColor(image, cv2.COLOR_BGR2RGB))
-axes[1].imshow(img_, alpha=1.0)
+axes[1].imshow(img_)
 axes[1].axis('off')
 
 print(img_.max(), img_.min())
-#print("Tiempo espera...")
-#time.sleep(10)
 # # Ajustar el diseño
 plt.tight_layout()
-# # Mostrar la figura
-plt.savefig('figura09.png', dpi=300, bbox_inches='tight')
+# Guardar la figura
+plt.savefig('Jetson/figura00.png', dpi=300, bbox_inches='tight')
 print("Done")
 # tiempo de ejecucion 1.5405511856079102

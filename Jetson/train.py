@@ -70,6 +70,6 @@ if __name__ == "__main__":
     x = [i+1 for i in range(len(score_history))]
     print(x)
     print(score_history)
-    append_scores('/home/jetson/Proyecto-SIS330/Jetson/score_history.csv', score_history)
+    append_scores('Jetson/score_history.csv', score_history)
 
     print("Historial de puntuaciones guardado en score_history.csv")
