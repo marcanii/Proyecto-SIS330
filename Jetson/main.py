@@ -36,7 +36,7 @@ def video_transmitter(client_socket):
         encoded, buffer = cv2.imencode('.jpg', frame)
         data = np.array(buffer)
         string_data = data.tostring()
-        client_socket.sendall((str(len(string_data))).encode().ljust(512) + string_data)
+        client_socket.sendall((str(len(string_data))).encode().ljust(128) + string_data)
 
     vid.release()
 
@@ -69,7 +69,7 @@ def control_handler(client_socket):
     global instruction
 
     while not stop_threads:
-        data = client_socket.recv(512)
+        data = client_socket.recv(128)
         if data:
             new_instruction = int(data.decode())
             if new_instruction != instruction:

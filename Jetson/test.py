@@ -53,7 +53,7 @@ axes[0].axis('off')
 
 axes[1].set_title("Segmentation Image")
 axes[1].imshow(cv2.cvtColor(image, cv2.COLOR_BGR2RGB))
-axes[1].imshow(img_, alpha=1.0)
+axes[1].imshow(img_, alpha=0.5)
 axes[1].axis('off')
 
 print(img_.max(), img_.min())
