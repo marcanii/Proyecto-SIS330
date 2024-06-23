@@ -1,54 +1,79 @@
-import torchvision.models as models
-from ActorNetwork import MyModelActorCNN, MobileNetActor
+from ActorNetwork import ActorNetwork, MyModelActorCNN
+import numpy as np
+import os
 import torch
 
+class Dataset(torch.utils.data.Dataset):
+  def __init__(self, X, y):
+    self.X = X
+    self.y = y
+
+  def __len__(self):
+    return len(self.X)
+
+  def __getitem__(self, ix):
+    img = X[ix]
+    return torch.from_numpy(img).float(), torch.tensor(self.y[ix]).long()
+
+def laod_dataset(data_dir):
+    X = []
+    Y = []
+    label_dict = {'parar': 0, 'atras': 1, 'adelante': 2, 'izquierda': 3, 'derecha': 4, 'giroIzq': 5, 'giroDer': 6}
+
+    for filename in os.listdir(data_dir):
+        if filename.endswith('.npy'):
+            label = filename.split('_')[0]
+            #print(label)
+            img = np.load(os.path.join(data_dir, filename))
+            img = np.expand_dims(img, axis=0)
+            X.append(img)
+            Y.append(label_dict[label])
+    
+    return np.array(X), np.array(Y)
+
+def fit(model, dataloader, epochs=10, lr=0.0003, device='cpu'):
+    model.to(device)
+    optimizer = torch.optim.SGD(model.parameters(), lr=lr)
+    criterion = torch.nn.CrossEntropyLoss()
+    
+    for epoch in range(1, epochs+1):
+        model.train()
+        train_loss, train_acc = [], []
+        #bar = tqdm(dataloader['train'])
+        for batch in dataloader['train']:
+            X, y = batch
+            X, y = X.to(device), y.to(device)
+            optimizer.zero_grad()
+            y_hat = model(X)
+            loss = criterion(y_hat, y)
+            loss.backward()
+            optimizer.step()
+            train_loss.append(loss.item())
+            acc = (y == torch.argmax(y_hat, axis=1)).sum().item() / len(y)
+            train_acc.append(acc)
+            #bar.set_description(f"loss {np.mean(train_loss):.5f} acc {np.mean(train_acc):.5f}")
+
+        if epoch % 10 == 0:
+            model.save_checkpoint()
+            print(f"Epoch {epoch}/{epochs} loss {np.mean(train_loss):.5f} acc {np.mean(train_acc):.5f}")
+
+
 if __name__ == '__main__':
-    #actor = models.mobilenet_v3_small(pretrained=True)
-    actor = MobileNetActor(8, 0.0003, False)
-    #print(actor)
-    out = actor(torch.randn(1, 2, 60, 108))
-    print(out)
-    # N = 5
-    # batch_size = 5
-    # n_epochs = 4
-    # alpha = 0.0003
-    # agent = Agent(n_actions=5, input_dims=3*59*105,
-    #               batch_size=batch_size, alpha=alpha, n_epochs=n_epochs)
+    device = "cuda" if torch.cuda.is_available() else "cpu"
+    #classes = ['parar', 'atras', 'adelante', 'izquierda', 'derecha', 'giroIzq', 'giroDer']
+    actor = ActorNetwork(7, 0.0003, False, False)
+    #actor.load_checkpoint()
+    data_dir = 'source/PPO/dataset'
+    X, y = laod_dataset(data_dir)
+    dataset = Dataset(X, y)
 
-    # n_games = 10
-
-    # best_score = -1000
-    # score_history = []
-
-    # learn_iters = 0
-    # avg_score = 0
-    # n_steps = 0
-
-    # for i in range(n_games):
-    #     observation = env.cameraOn()
-    #     done = False
-    #     score = 0
-    #     while not done:
-    #         action, prob, val = agent.choose_action(observation)
-    #         observation_, reward, done, info = env.step(action)
-    #         n_steps += 1
-    #         score += reward
-    #         agent.remember(observation, action, prob, val, reward, done)
-    #         if n_steps % N == 0:
-    #             agent.learn()
-    #             learn_iters += 1
-    #         observation = observation_
-    #     score_history.append(score)
-    #     avg_score = np.mean(score_history[-100:])
-
-    #     if avg_score > best_score:
-    #         best_score = avg_score
-
-    #     print('episode', i, 'score %.1f' % score, 'avg score %.1f' % avg_score,
-    #             'time_steps', n_steps, 'learning_steps', learn_iters)
-    # x = [i+1 for i in range(len(score_history))]
-
-    # agente = Agent(5, 3*59*105)
-    # observation = torch.randn(1, 3, 59, 105)
-    # action, probs, value = agente.choose_action(observation)
-    # print(action, probs, value)
+    dataset = {
+        'train': Dataset(X, y),
+    }
+    dataloader = {
+        'train': torch.utils.data.DataLoader(dataset['train'], batch_size=8, shuffle=True, pin_memory=True),
+    }
+    #imgs, labels = next(iter(dataloader['train']))
+    #print(imgs.shape)
+    #print(dataset['train'][2])
+    fit(actor, dataloader, epochs=100, lr=0.0003, device=device)

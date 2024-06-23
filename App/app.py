@@ -16,7 +16,7 @@ accion = None
 def getVideo(canvas, image_label):
     while True:
         # Recibir el tamaño del frame
-        data = cliente_socket.recv(512)
+        data = cliente_socket.recv(128)
         if not data:
             break
         length = int(data)
