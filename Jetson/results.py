@@ -25,13 +25,7 @@ def plot_learning_curve(x, scores, figure_file):
     plt.ylabel('Score')
     plt.savefig(figure_file)
 
-Episode, Score = getValues("score_history.csv")
+Episode, Score = getValues("Jetson/score_history.csv")
 Episode = np.array(Episode)
 Score = np.array(Score)
-plot_learning_curve(Episode, Score, "learning_curve.png")
-
-# plt.plot(Episode, Score)
-# plt.xlabel('Episode')
-# plt.ylabel('Score')
-# plt.title('Training Progress')
-# plt.savefig('traning_progress.png', dpi=300, bbox_inches='tight')
+plot_learning_curve(Episode, Score, "Jetson/learning_curve.png")

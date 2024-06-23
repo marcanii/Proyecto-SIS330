@@ -51,33 +51,6 @@ class Agent:
         #reward, done = self.calculateReward(imgSeg)
         #observation_ = imgSeg
         return observation_, reward, done
-    
-    def calculateReward(self, masks):
-        done = False
-        # Contar los píxeles de cada tipo
-        background = np.sum(masks == 0)
-        obs = np.sum(masks == 1)
-        camino = np.sum(masks == 2)
-        # print("Sum background = ", background)
-        # print("Sum obs = ", obs)
-        # print("Sum camino = ", camino)
-        # Comparar las sumas y calcular la recompensa
-        if camino > obs:
-            reward = 1
-        elif obs > camino:
-            reward = -2
-            done = True
-        else:
-            reward = 0
-            done = True
-
-        return reward, done
-    
-    def getDone(self, reward):
-        if reward < -10:
-            return True
-        return False
-
 
     def takeAction(self, action):
         speed = 0.5
