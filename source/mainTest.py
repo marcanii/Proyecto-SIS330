@@ -8,6 +8,7 @@ import matplotlib.pyplot as plt
 import time
 
 if __name__ == '__main__':
+    classes = ['parar', 'atras', 'adelante', 'izquierda', 'derecha', 'giroIzq', 'giroDer']
     device = "cuda" if torch.cuda.is_available() else "cpu"
     model_path = "source/UNet/models/UNetResNet_model_seg_v3_30.pt"
     modelSegmentation = UNetResnet()
@@ -18,11 +19,11 @@ if __name__ == '__main__':
     batch_size = 4
     n_epochs = 10
     alpha = 0.0003
-    agent = Agent(n_actions=6, cuda=True, batch_size=batch_size, alpha=alpha, n_epochs=n_epochs)
-    #agent.load_models()
+    agent = Agent(n_actions=7, cuda=True, batch_size=batch_size, alpha=alpha, n_epochs=n_epochs)
+    agent.load_models()
     
     startTime = time.time()
-    img = cv2.imread("source/6.jpg")
+    img = cv2.imread("source/3.jpg")
     print("InputImage: ", img.shape)
     x_input = torch.from_numpy(np.array(img) / 255.0).float().permute(2, 0, 1).unsqueeze(0).to(device)
     x_input = x_input.clone().detach()
@@ -39,7 +40,7 @@ if __name__ == '__main__':
     inputImgPOO = seg_image
     print("InputImagePOO: ", inputImgPOO.shape, inputImgPOO.dtype, inputImgPOO.max(), inputImgPOO.min())
     action, probs, value = agent.choose_action(inputImgPOO)
-    print("Action: ", action)
+    print("Action: ", action, classes[action])
     print("Probs: ", probs)
     print("Value: ", value)
     endTime = time.time()
@@ -50,13 +51,13 @@ if __name__ == '__main__':
     axes[0].axis('off')
 
     axes[1].set_title("Segmentation Image")
-    axes[1].imshow(mask_img.cpu().numpy())
+    axes[1].imshow(cv2.cvtColor(img, cv2.COLOR_BGR2RGB))
+    axes[1].imshow(mask_img.cpu().numpy(), alpha=0.5)
     axes[1].axis('off')
 
     inputImgPOO = inputImgPOO.squeeze(0).squeeze(0).cpu()
     axes[2].set_title("MaxPooling Image")
-    axes[2].imshow(cv2.cvtColor(img, cv2.COLOR_BGR2RGB))
-    axes[2].imshow(inputImgPOO, alpha=0.5)
+    axes[2].imshow(inputImgPOO)
     axes[2].axis('off')
     #print(inputImgPOO[59])
     # # Ajustar el diseño

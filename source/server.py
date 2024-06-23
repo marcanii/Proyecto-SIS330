@@ -16,9 +16,16 @@ maxPooling.to(device)
 batch_size = 4
 n_epochs = 10
 alpha = 0.0003
-agent = Agent(n_actions=6, cuda=True, batch_size=batch_size, alpha=alpha, n_epochs=n_epochs)
+agent = Agent(n_actions=7, cuda=True, batch_size=batch_size, alpha=alpha, n_epochs=n_epochs)
 
 app = Flask(__name__)
+
+def process_image(image_bytes):
+    nparr = np.frombuffer(image_bytes, np.uint8)
+    img = cv2.imdecode(nparr, cv2.IMREAD_UNCHANGED)
+    x_input = torch.from_numpy(img).float().permute(2, 0, 1).unsqueeze(0).to(device)
+    x_input.div_(255.0)
+    return x_input
 
 @app.route('/', methods=['GET'])
 def process_request():
@@ -30,20 +37,14 @@ def get_observation():
         return jsonify({'error': 'No se proporcionó ninguna imagen'}), 400
 
     image = request.files['image']
-
     image_data = image.read()
-    img = cv2.imdecode(np.frombuffer(image_data, np.uint8), cv2.IMREAD_UNCHANGED)
-
-    x_input = torch.from_numpy(np.array(img) / 255.0).float().permute(2, 0, 1).unsqueeze(0).to(device)
-    x_input = x_input.clone().detach()
-    modelSegmentation.eval()
+    x_input = process_image(image_data)
+    
     with torch.no_grad():
         output = modelSegmentation(x_input)[0]
-        mask_img = torch.argmax(output, axis=0) #type: ignore
-    mask_img = mask_img.unsqueeze(0).unsqueeze(0).to(device).float()
-    img_poo = maxPooling(mask_img)
-    img_poo = img_poo.squeeze(0).squeeze(0).cpu().numpy()
-    #print("img_poo: ",img_poo.shape)
+        mask_img = output.argmax(dim=0, keepdim=True).unsqueeze(0).float()
+
+    img_poo = maxPooling(mask_img).squeeze().cpu().numpy()
     reward, done = agent.calculateReward(img_poo)
     return jsonify({
         "image": img_poo.tolist(),

@@ -16,7 +16,7 @@ accion = None
 def getVideo(canvas, image_label):
     while True:
         # Recibir el tamaño del frame
-        data = cliente_socket.recv(512)
+        data = cliente_socket.recv(128)
         if not data:
             break
         length = int(data)
@@ -43,10 +43,10 @@ def getVideo(canvas, image_label):
 def send_instruction(instruction):
     cliente_socket.send(str(instruction).encode())
 
-def move_forward():
+def move_backward():
     send_instruction(1)
 
-def move_backward():
+def move_forward():
     send_instruction(2)
 
 def move_left():
@@ -73,6 +73,7 @@ def set_mode():
         enable_controls()
     else:
         disable_controls()
+        send_instruction(10)
 
 def enable_controls():
     forward_button.config(state=tk.NORMAL)
