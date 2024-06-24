@@ -66,7 +66,7 @@ class DenseNetActor201(nn.Module):
             nn.Softmax(dim=-1)
         )
 
-        self.checkpoint_file = os.path.join(chkpt_dir, 'actor_ppo_densenet_201.pt')
+        self.checkpoint_file = os.path.join(chkpt_dir, 'actor_ppo_densenet_201_v2.pt')
         self.optimizer = optim.Adam(self.parameters(), lr=alpha)
         if cuda:
             print("ActorNetwork esta usando CUDA...")

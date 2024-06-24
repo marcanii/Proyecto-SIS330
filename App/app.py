@@ -72,9 +72,12 @@ def set_mode():
     if mode_var.get() == "controlled":
         enable_controls()
         send_instruction(11)
-    else:
+    elif mode_var.get() == "autonomous":
         disable_controls()
         send_instruction(10)
+    else:
+        disable_controls()
+        send_instruction(12)
 
 def enable_controls():
     forward_button.config(state=tk.NORMAL)
@@ -138,6 +141,9 @@ autonomous_radio.grid(column=0, row=2, sticky=tk.W)
 
 controlled_radio = ttk.Radiobutton(control_frame, text="Controlado", variable=mode_var, value="controlled", command=set_mode)
 controlled_radio.grid(column=1, row=2, sticky=tk.W)
+
+controlled_radio = ttk.Radiobutton(control_frame, text="Seguir", variable=mode_var, value="follow", command=set_mode)
+controlled_radio.grid(column=3, row=2, sticky=tk.W)
 
 # Botones de control
 forward_button = ttk.Button(control_frame, text="Adelante", command=move_forward)

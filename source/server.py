@@ -17,6 +17,7 @@ batch_size = 4
 n_epochs = 10
 alpha = 0.0003
 agent = Agent(n_actions=7, cuda=True, batch_size=batch_size, alpha=alpha, n_epochs=n_epochs)
+agent.load_models()
 
 app = Flask(__name__)
 
@@ -103,7 +104,6 @@ def load_models():
 
 @app.route('/inference', methods=['POST'])
 def inference():
-    agent.load_models()
     if 'image' not in request.files:
         return jsonify({'error': 'No se proporcionó ninguna imagen'}), 400
 
