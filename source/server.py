@@ -101,5 +101,25 @@ def load_models():
     
     return jsonify({'error': 'No se proporcionó el modelo a cargar'}), 400
 
+@app.route('/inference', methods=['POST'])
+def inference():
+    agent.load_models()
+    if 'image' not in request.files:
+        return jsonify({'error': 'No se proporcionó ninguna imagen'}), 400
+
+    image = request.files['image']
+    image_data = image.read()
+    x_input = process_image(image_data)
+    
+    with torch.no_grad():
+        output = modelSegmentation(x_input)[0]
+        mask_img = output.argmax(dim=0, keepdim=True).unsqueeze(0).float()
+    img_poo = maxPooling(mask_img)
+    #print("MaxPooling: ", img_poo.shape)
+    action, _, _ = agent.choose_action(img_poo)
+    return jsonify({
+        "action": action,
+    })
+
 if __name__ == "__main__":
     app.run(host='0.0.0.0', port=5000)
