@@ -30,7 +30,7 @@ if __name__ == "__main__":
     else:
         print("Error al cargar los modelos...")
     N = 4
-    n_games = 10
+    n_games = 15
 
     best_score = -np.inf
     score_history = []

@@ -6,6 +6,7 @@ from Robot.MotorController import MotorController
 import requests
 from io import BytesIO
 import time
+import subprocess
 
 # URL del servidor de inferencia
 url_inference = "https://dhbqf30k-5000.brs.devtunnels.ms/inference"
@@ -17,7 +18,7 @@ port = 9999
 # Variables globales para compartir datos entre hilos
 instruction = None
 stop_threads = False
-autonomous_mode = False
+mode = False
 img = None
 
 # Inicializando motor controller
@@ -51,8 +52,30 @@ def inference(image):
     action = response.json()['action']
     return action
 
+def get_wifi_strength(interface='wlan0'):
+    try:
+        # Ejecuta el comando iwconfig para obtener la información del WiFi
+        result = subprocess.check_output(
+            ['iwconfig', interface],
+            stderr=subprocess.STDOUT,
+            universal_newlines=True
+        )
+        
+        # Recorre las líneas del resultado
+        for line in result.split('\n'):
+            # Busca la línea que contiene 'Signal level'
+            if 'Signal level' in line:
+                # Extrae el valor de dBm de la línea
+                dBm = line.split('Signal level=')[1].split(' ')[0]
+                return int(dBm)
+                
+    except Exception as e:
+        # En caso de error, imprime el mensaje de error y devuelve None
+        print(f"Error al obtener la fuerza de la señal WiFi: {e}")
+        return None
+    
 def handle_instruction(instruction):
-    global autonomous_mode
+    global mode
     speed = 0.5
     if instruction == 0:
         motorController.stop()
@@ -69,15 +92,18 @@ def handle_instruction(instruction):
     elif instruction == 6:
         motorController.turnRight(speed)
     elif instruction == 10:  # Cambiar a modo autónomo
-        autonomous_mode = True
+        mode = "autonomous"
         print("Modo autónomo activado")
     elif instruction == 11:  # Cambiar a modo controlado
-        autonomous_mode = False
+        mode = "controlled"
         print("Modo controlado activado")
+    elif instruction == 12:  # Cambiar a modo seguir
+        mode = "follow"
+        print("Modo seguir activado")
 
 # Función para manejar las instrucciones de control
 def control_handler(client_socket):
-    global instruction, autonomous_mode
+    global instruction, mode
     while not stop_threads:
         data = client_socket.recv(128)
         if data:
@@ -85,15 +111,30 @@ def control_handler(client_socket):
             if new_instruction != instruction:
                 instruction = new_instruction
                 handle_instruction(instruction)
-        if not autonomous_mode:
+        if mode == "controlled":
             time.sleep(0.1)  # Pequeña pausa para no saturar el CPU
 
+def follow_wifi():
+    signal_strength = get_wifi_strength()
+    print(f"Fuerza de señal Wi-Fi: {signal_strength} dBm")
+    
+    if signal_strength is None:
+        motorController.stop()
+    elif signal_strength > -50:  # Señal fuerte, estás cerca
+        motorController.stop()
+    elif -70 < signal_strength <= -50:  # Señal media, moverse lento
+        motorController.forward(0.4)
+    else:  # Señal débil, moverse más rápido
+        motorController.forward(0.6)
+
 def autonomous_driving():
-    global autonomous_mode, img
+    global mode, img
     while not stop_threads:
-        if autonomous_mode and img is not None:
+        if mode == "autonomous" and img is not None:
             action = inference(img)
             handle_instruction(action)
+        elif mode == "follow":
+            follow_wifi()
         else:
             time.sleep(0.1)  # Pequeña pausa para no saturar el CPU
 

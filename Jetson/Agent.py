@@ -53,7 +53,7 @@ class Agent:
         return observation_, reward, done
 
     def takeAction(self, action):
-        speed = 0.5
+        speed = 0.4
         if action == 0:
             self.motorController.stop()
         elif action == 1:
